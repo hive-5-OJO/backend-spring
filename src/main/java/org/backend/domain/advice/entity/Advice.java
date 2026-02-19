@@ -1,7 +1,9 @@
-package org.backend.domain.entity;
+package org.backend.domain.advice.entity;
+
 import jakarta.persistence.*;
+import org.backend.domain.analysis.entity.Promotion;
+import org.backend.domain.auth.entity.Admin;
 import org.backend.domain.member.entity.Member;
-import org.backend.domain.subscription.entity.Promotion;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +14,7 @@ public class Advice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "advice_id")
+    @Column(name = "advice_id"  )
     private Long id;
 
     // 상담을 받은 고객

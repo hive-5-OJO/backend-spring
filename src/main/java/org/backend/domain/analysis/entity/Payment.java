@@ -1,4 +1,5 @@
-package org.backend.domain.entity;
+package org.backend.domain.analysis.entity;
+
 
 import jakarta.persistence.*;
 

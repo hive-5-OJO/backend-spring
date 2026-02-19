@@ -1,5 +1,6 @@
 package org.backend.domain.member.entity;
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 

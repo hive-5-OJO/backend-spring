@@ -1,0 +1,31 @@
+package org.backend.domain.auth.dto;
+
+public class LoginResponse {
+
+    private String accessToken;
+    private String tokenType = "Bearer";
+    private Long adminId;
+    private String email;
+    private String role;
+
+    public LoginResponse() {}
+
+    public LoginResponse(String accessToken, Long adminId, String email, String role) {
+        this.accessToken = accessToken;
+        this.adminId = adminId;
+        this.email = email;
+        this.role = role;
+    }
+
+    public String getAccessToken() { return accessToken; }
+    public String getTokenType() { return tokenType; }
+    public Long getAdminId() { return adminId; }
+    public String getEmail() { return email; }
+    public String getRole() { return role; }
+
+    public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
+    public void setTokenType(String tokenType) { this.tokenType = tokenType; }
+    public void setAdminId(Long adminId) { this.adminId = adminId; }
+    public void setEmail(String email) { this.email = email; }
+    public void setRole(String role) { this.role = role; }
+}
