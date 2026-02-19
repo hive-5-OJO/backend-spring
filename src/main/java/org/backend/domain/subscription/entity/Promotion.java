@@ -1,4 +1,4 @@
-package org.backend.entity;
+package org.backend.domain.subscription.entity;
 
 import jakarta.persistence.*;
 
