@@ -36,3 +36,14 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Env & YAML (Back-end) ###
+.env
+.env.*
+**/.env
+**/.env.*
+
+*.yml
+*.yaml
+**/*.yml
+**/*.yaml
