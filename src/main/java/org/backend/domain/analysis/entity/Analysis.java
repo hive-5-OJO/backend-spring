@@ -1,7 +1,8 @@
-package org.backend.entity;
+package org.backend.domain.analysis.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.backend.domain.member.entity.Member;
 
 import java.time.LocalDateTime;
 

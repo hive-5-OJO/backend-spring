@@ -1,6 +1,6 @@
 package org.backend.domain.analysis.repository;
 
-import org.backend.entity.Analysis;
+import org.backend.domain.analysis.entity.Analysis;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

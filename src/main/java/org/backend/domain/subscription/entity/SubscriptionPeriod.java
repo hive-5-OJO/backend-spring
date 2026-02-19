@@ -1,10 +1,13 @@
-package org.backend.entity;
+package org.backend.domain.subscription.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import org.backend.domain.member.entity.Member;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
 @Table(name = "subscription_period")
 public class SubscriptionPeriod {
 

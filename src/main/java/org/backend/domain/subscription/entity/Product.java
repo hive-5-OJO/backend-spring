@@ -1,9 +1,11 @@
-package org.backend.entity;
+package org.backend.domain.subscription.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 
 @Entity
+@Getter
 @Table(name = "product")
 public class Product {
 
