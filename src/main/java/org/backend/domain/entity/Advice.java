@@ -1,5 +1,7 @@
-package org.backend.entity;
+package org.backend.domain.entity;
 import jakarta.persistence.*;
+import org.backend.domain.member.entity.Member;
+import org.backend.domain.subscription.entity.Promotion;
 
 import java.time.LocalDateTime;
 

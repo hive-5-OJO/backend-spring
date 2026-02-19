@@ -1,4 +1,4 @@
-package org.backend.entity;
+package org.backend.domain.member.entity;
 
 import jakarta.persistence.*;
 
