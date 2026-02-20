@@ -1,11 +1,16 @@
 package org.backend.entity;
+
 import jakarta.persistence.*;
-
+import lombok.*;
 import java.time.LocalDateTime;
-
 
 @Entity
 @Table(name = "advice")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Advice {
 
     @Id
@@ -34,11 +39,11 @@ public class Advice {
     private Promotion promotion;
 
     // IN / OUT bound 구분
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String direction;
 
     // CALL, APP, SMS 등 구분
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String channel;
 
     @Column(name = "advice_content", columnDefinition = "TEXT")
@@ -55,5 +60,4 @@ public class Advice {
 
     @Column(name = "satisfaction_score")
     private Long satisfactionScore;
-
 }

@@ -1,9 +1,14 @@
 package org.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "categories")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Categories {
 
     @Id
@@ -14,7 +19,6 @@ public class Categories {
     @Column(name = "parent_id")
     private Long parentId;
 
-    @Column(name = "category_name", nullable = false, length = 255)
+    @Column(name = "category_name", nullable = false)
     private String categoryName;
-
 }

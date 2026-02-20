@@ -1,10 +1,18 @@
 package org.backend.entity;
+
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "member")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Member {
 
     @Id
@@ -27,10 +35,10 @@ public class Member {
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String region;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String address;
 
     @Column(name = "household_type", nullable = false)
