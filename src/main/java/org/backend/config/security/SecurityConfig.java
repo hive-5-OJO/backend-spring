@@ -43,10 +43,10 @@ public class SecurityConfig {
                 // 세션 사용 안함(JWT)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                //  401/403 예외를 ApiError JSON으로 내려주기
+                // 401/403 예외를 ApiError JSON으로 내려주기
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(securityExceptionHandler) //401
-                        .accessDeniedHandler(securityExceptionHandler) //403
+                        .authenticationEntryPoint(securityExceptionHandler) // 401
+                        .accessDeniedHandler(securityExceptionHandler)       // 403
                 )
 
                 // CORS
@@ -54,8 +54,11 @@ public class SecurityConfig {
 
                 // 인가 정책
                 .authorizeHttpRequests(auth -> auth
-                        // 로그인/구글 콜백은 열어두기
+                        // 로그인/토큰 재발급/구글 콜백 등 인증 관련은 열어두기
                         .requestMatchers("/api/auth/**").permitAll()
+                        
+                        // 디버깅용(잠시추가)
+                        .requestMatchers("/error").permitAll()
 
                         // Swagger 사용 중이면 열어둠 (필요 없으면 삭제)
                         .requestMatchers(

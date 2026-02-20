@@ -1,4 +1,4 @@
-package org.backend.domain.analysis.entity;
+package org.backend.domain.subscription.entity;
 
 
 import jakarta.persistence.Column;

@@ -2,7 +2,7 @@ package org.backend.domain.analysis.entity;
 
 
 import jakarta.persistence.*;
-import org.backend.domain.subscription.entity.Product;
+import  org.backend.domain.subscription.entity.Product;
 
 import java.time.LocalDateTime;
 
