@@ -1,0 +1,77 @@
+version: '3.8'
+services:
+  #db
+  db:
+    image: mysql:8.0
+    container_name: db
+    environment:
+      - MYSQL_DATABASE=ojo
+      - MYSQL_ROOT_PASSWORD=high5
+    ports:
+      - "3307:3306"
+
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        echo "CREATE DATABASE IF NOT EXISTS ojo_analysis;" > /docker-entrypoint-initdb.d/init.sql
+        exec /entrypoint.sh mysqld
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 10
+
+  # 엘라스틱서치
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    container_name: elasticsearch
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - TZ=Asia/Seoul
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./es_data:/usr/share/elasticsearch/data
+    # 한글 분석기(Nori) 자동 설치 로직
+    command: >
+      /bin/sh -c "./bin/elasticsearch-plugin list | grep -q analysis-nori 
+      || ./bin/elasticsearch-plugin install analysis-nori; 
+      /usr/local/bin/docker-entrypoint.sh"
+
+  # 키바나
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - TZ=Asia/Seoul
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+
+  # 백엔드 서버
+  backend:
+    build:
+      context: . # 백엔드 레포지토리 경로
+      dockerfile: Dockerfile
+    container_name: spring_server
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/ojo?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=high5
+      - SPRING_ELASTICSEARCH_URIS=http://elasticsearch:9200
