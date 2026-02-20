@@ -16,6 +16,8 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+
+# glocal-only config (팀 공유 X)
 application.properties
 
 ### IntelliJ IDEA ###
@@ -36,3 +38,15 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# OS / misc
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Env files (비밀키/로컬설정)
+.env
+.env.*
