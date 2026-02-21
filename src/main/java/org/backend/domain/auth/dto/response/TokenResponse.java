@@ -1,4 +1,4 @@
-package org.backend.domain.auth.dto;
+package org.backend.domain.auth.dto.response;
 
 public class TokenResponse {
 

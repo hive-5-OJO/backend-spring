@@ -1,23 +1,28 @@
-// backend-spring/src/main/java/org/backend/domain/auth/controller/AuthController.java
 package org.backend.domain.auth.controller;
 
 import jakarta.validation.Valid;
-import org.backend.domain.auth.dto.*;
+import lombok.RequiredArgsConstructor;
+import org.backend.common.CommonResponse;
+import org.backend.domain.auth.dto.request.GoogleOAuthLoginRequest;
+import org.backend.domain.auth.dto.request.LoginRequest;
+import org.backend.domain.auth.dto.request.RefreshRequest;
+import org.backend.domain.auth.dto.response.LoginResponse;
+import org.backend.domain.auth.dto.response.MeResponse;
+import org.backend.domain.auth.dto.response.TokenResponse;
 import org.backend.domain.auth.security.AdminPrincipal;
 import org.backend.domain.auth.service.AuthService;
+import org.backend.domain.auth.service.GoogleOAuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
-
-    public AuthController(AuthService authService) {
-        this.authService = authService;
-    }
+    private final GoogleOAuthService googleOAuthService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
@@ -52,6 +57,7 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+
     private AdminPrincipal extractPrincipal(Authentication authentication) {
         if (authentication == null || authentication.getPrincipal() == null) {
             throw new IllegalArgumentException("인증 정보가 없습니다.");
@@ -75,4 +81,12 @@ public class AuthController {
 
         throw new IllegalArgumentException("인증 주체 정보가 올바르지 않습니다.");
     }
+
+    @PostMapping("/google")
+    public ResponseEntity<CommonResponse<LoginResponse>> googleLogin(@RequestBody @Valid GoogleOAuthLoginRequest request) {
+        LoginResponse result = googleOAuthService.loginWithCode(request.code());
+        return ResponseEntity.ok(CommonResponse.success(result, "구글 로그인 성공"));
+    }
+
+
 }
