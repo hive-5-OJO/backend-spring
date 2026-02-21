@@ -1,13 +1,13 @@
 package org.backend.domain.member.entity;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "member")
-@Data
+@Getter
 public class Member {
 
     @Id

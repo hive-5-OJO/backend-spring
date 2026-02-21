@@ -1,21 +1,21 @@
 package org.backend.domain.analysis.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 import org.backend.domain.member.entity.Member;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "analysis")
-@Data
+@Getter
 public class Analysis {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "analysis_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
