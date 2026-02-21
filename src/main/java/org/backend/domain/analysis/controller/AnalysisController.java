@@ -1,8 +1,10 @@
 package org.backend.domain.analysis.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.backend.common.CommonResponse;
 import org.backend.domain.analysis.dto.AnalysisSummaryResponseDto;
 import org.backend.domain.analysis.dto.LtvResponseDto;
+import org.backend.domain.analysis.dto.RfmResponseDto;
 import org.backend.domain.analysis.service.AnalysisService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,4 +32,11 @@ public class AnalysisController {
 
     // 대시보드
 //    @GetMapping("/dashboard")
+
+    // rfm 조회
+    @GetMapping("/rfm/{memberId}")
+    public ResponseEntity<CommonResponse<RfmResponseDto>> getRfm(@PathVariable Long memberId){
+        RfmResponseDto data = analysisService.getRfm(memberId);
+        return ResponseEntity.ok(CommonResponse.success(data, null));
+    }
 }
