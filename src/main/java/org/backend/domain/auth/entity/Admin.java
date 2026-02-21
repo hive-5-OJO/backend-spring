@@ -1,7 +1,10 @@
 package org.backend.domain.auth.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -64,6 +67,18 @@ public class Admin {
         this.google = google;
         this.role = role;
         this.status = status;
+    }
+
+    public static Admin createGoogleUser(String name, String email) {
+        return Admin.builder()
+                .name(name)
+                .email(email)
+                .password(null)
+                .phone("000-0000-0000")
+                .google(true)
+                .role("ROLE_ADMIN")
+                .status("ACTIVE")
+                .build();
     }
 
     public void changePassword(String encodedPassword) {

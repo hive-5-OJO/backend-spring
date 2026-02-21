@@ -32,4 +32,16 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    protected ResponseEntity<CommonResponse<?>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("IllegalArgumentException: {}", ex.getMessage());
+        return new ResponseEntity<>(CommonResponse.error(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(org.springframework.web.client.RestClientResponseException.class)
+    protected ResponseEntity<CommonResponse<?>> handleRestClientResponseException(org.springframework.web.client.RestClientResponseException ex) {
+        log.error("RestClientResponseException: status={}, body={}", ex.getStatusCode(), ex.getResponseBodyAsString());
+        return new ResponseEntity<>(CommonResponse.error("구글 인증 처리에 실패했습니다."), HttpStatus.BAD_REQUEST);
+    }
+
 }
