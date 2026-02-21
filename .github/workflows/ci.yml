@@ -14,45 +14,45 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4
+    - name: Checkout Source
+      uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
 
-      # 빌드 (jar 생성)
-      - name: Build with Gradle
-        run: |
-          chmod +x gradlew
-          ./gradlew clean bootJar -x test
+    # 빌드 (jar 생성)
+    - name: Build with Gradle
+      run: |
+        chmod +x gradlew
+        ./gradlew clean bootJar -x test
 
-      # Docker Hub 로그인
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+    # Docker Hub 로그인
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 도커 이미지 빌드 및 푸시
-      - name: Build and Push Docker Image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/ojo-backend:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/ojo-backend:latest
+    # 도커 이미지 빌드 및 푸시
+    - name: Build and Push Docker Image
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/ojo-backend:latest .
+        docker push ${{ secrets.DOCKER_USERNAME }}/ojo-backend:latest
 
-      # CD
-      - name: Deploy to server(EC2)
-        uses: appleboy/ssh-action@master
-        id: deploy
-        with:
-          host: ${{ secrets.HOST }}
-          username: ubuntu
-          key: ${{ secrets.KEY }}
-          envs: GITHUB_SHA
-          script: |
-            cd /home/ubuntu/project           # 실제 docker-compose.yml이 있는 위치로 수정 필요
-            docker compose pull               # 최신 이미지 내려받기
-            docker compose up -d backend      # 백엔드 이미지만 새로 받음, 무중단 교체
-            docker image prune -f             # 쓰지 않는 옛날 이미지 삭제
+    # CD
+    - name: Deploy to server(EC2)
+      uses: appleboy/ssh-action@master
+      id: deploy
+      with:
+        host: ${{ secrets.HOST }}
+        username: ubuntu
+        key: ${{ secrets.KEY }}
+        envs: GITHUB_SHA
+        script: |
+          cd /home/ubuntu/project           # 실제 docker-compose.yml이 있는 위치로 수정 필요
+          docker compose pull               # 최신 이미지 내려받기
+          docker compose up -d backend      # 백엔드 이미지만 새로 받음, 무중단 교체
+          docker image prune -f             # 쓰지 않는 옛날 이미지 삭제
