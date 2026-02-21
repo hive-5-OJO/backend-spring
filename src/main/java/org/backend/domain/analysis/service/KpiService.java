@@ -8,6 +8,8 @@ import org.backend.domain.analysis.entity.RfmKpi;
 import org.backend.domain.analysis.repository.RfmKpiRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 @Service
 @RequiredArgsConstructor
 public class KpiService {
@@ -27,13 +29,16 @@ public class KpiService {
         );
     }
 
-    private String evaluateStatus(String kpi, Float value){
+    private String evaluateStatus(String kpi, BigDecimal value){
         if(value== null) return "UNKNOWN";
 
         return switch (kpi){
-            case "CRR" -> value >= 0.8 ? "EXCELLENT" : (value >= 0.6 ? "STABLE" : "WARNING");
-            case "CHURN" -> value <= 0.1 ? "SAFE" : (value <= 0.2 ? "CAUTION" : "DANGER");
-            case "NRR" -> value >= 1.1 ? "GROWING" : (value >= 1.0 ? "STAGNANT" : "DECLINING");
+            case "CRR" -> value.compareTo(new BigDecimal("0.8")) >= 0 ? "EXCELLENT" :
+                    (value.compareTo(new BigDecimal("0.6")) >= 0 ? "STABLE" : "WARNING");
+            case "CHURN" -> value.compareTo(new BigDecimal("0.1")) <= 0 ? "SAFE" :
+                    (value.compareTo(new BigDecimal("0.2")) <= 0 ? "CAUTION" : "DANGER");
+            case "NRR" -> value.compareTo(new BigDecimal("1.1")) >= 0 ? "GROWING" :
+                    (value.compareTo(new BigDecimal("1.0")) >= 0 ? "STAGNANT" : "DECLINING");
             default -> "NORMAL";
         };
     }

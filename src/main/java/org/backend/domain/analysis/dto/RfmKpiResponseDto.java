@@ -1,11 +1,13 @@
 package org.backend.domain.analysis.dto;
 
+import java.math.BigDecimal;
+
 public record RfmKpiResponseDto(
     String baseMonth,
-    Float crr,
+    BigDecimal crr,
     String crrStatus,
-    Float churnRate,
+    BigDecimal churnRate,
     String churnStatus,
-    Float nrr,
+    BigDecimal nrr,
     String nrrStatus
 ) {}
