@@ -51,3 +51,5 @@ es_data/
 *.yaml
 **/*.yml
 **/*.yaml
+
+!.github/workflows/ci.yml
