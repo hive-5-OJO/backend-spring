@@ -32,4 +32,10 @@ public class GlobalExceptionHandler {
 
     }
 
+    // 그 외 예상치 못한 에러
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<CommonResponse<?>> handleException(Exception e){
+        log.error("Unhandled Exception: "+e);
+        return new ResponseEntity<>(CommonResponse.error("internal sever error"), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

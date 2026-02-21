@@ -4,19 +4,19 @@ import lombok.RequiredArgsConstructor;
 import org.backend.common.CommonResponse;
 import org.backend.domain.analysis.dto.AnalysisSummaryResponseDto;
 import org.backend.domain.analysis.dto.LtvResponseDto;
+import org.backend.domain.analysis.dto.RfmKpiResponseDto;
 import org.backend.domain.analysis.dto.RfmResponseDto;
 import org.backend.domain.analysis.service.AnalysisService;
+import org.backend.domain.analysis.service.KpiService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/analysis")
 @RequiredArgsConstructor
 public class AnalysisController {
     private final AnalysisService analysisService;
+    private final KpiService kpiService;
 
     // 특정 고객 LTV 조회
     @GetMapping("/ltv/{memberId}")
@@ -38,5 +38,12 @@ public class AnalysisController {
     public ResponseEntity<CommonResponse<RfmResponseDto>> getRfm(@PathVariable Long memberId){
         RfmResponseDto data = analysisService.getRfm(memberId);
         return ResponseEntity.ok(CommonResponse.success(data, null));
+    }
+
+    // kpi 도출
+    @GetMapping("/rfmkpi")
+    public ResponseEntity<CommonResponse<RfmKpiResponseDto>> getKpi(@RequestParam(name = "baseMonth") String baseMonth){
+        RfmKpiResponseDto data = kpiService.getKpi(baseMonth);
+        return ResponseEntity.ok(CommonResponse.success(data, "kpi 조회 성공"));
     }
 }
