@@ -1,10 +1,12 @@
 package org.backend.domain.member.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
 @Table(name = "member_consent")
 public class MemberConsent {
 
