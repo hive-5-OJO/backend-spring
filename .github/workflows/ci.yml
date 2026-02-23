@@ -3,8 +3,8 @@ name: CI - Build and Push Docker Image and CD
 # main 브랜치에 푸시될 때만 작동, pull_request는 우선 테스트를 위해 기입
 on:
   push:
-    branches: [ "main" ] 
-  pull_request: 
+    branches: [ "main" ]
+  pull_request:
     branches: [ "main" ]
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
         key: ${{ secrets.KEY }}
         envs: GITHUB_SHA
         script: |
-            cd /home/ubuntu/project           # 실제 docker-compose.yml이 있는 위치로 수정 필요
-            docker compose pull               # 최신 이미지 내려받기
-            docker compose up -d backend      # 백엔드 이미지만 새로 받음, 무중단 교체
-            docker image prune -f             # 쓰지 않는 옛날 이미지 삭제
+          cd /home/ubuntu/project           # 실제 docker-compose.yml이 있는 위치로 수정 필요
+          docker compose pull               # 최신 이미지 내려받기
+          docker compose up -d backend      # 백엔드 이미지만 새로 받음, 무중단 교체
+          docker image prune -f             # 쓰지 않는 옛날 이미지 삭제
