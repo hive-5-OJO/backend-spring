@@ -21,7 +21,7 @@ public class AdviceSearchService {
             return Page.empty(pageable);
         }
 
-        Page<AdviceDocument> documentPage = adviceSearchRepository.findByAdviceContentContaining(keyword, pageable);
+        Page<AdviceDocument> documentPage = adviceSearchRepository.findByAdviceContent(keyword, pageable);
 
         return documentPage.map(AdviceSearchResponse::from);
 

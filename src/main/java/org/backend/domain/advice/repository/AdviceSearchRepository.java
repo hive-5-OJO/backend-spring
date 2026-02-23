@@ -7,6 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 
 public interface AdviceSearchRepository extends ElasticsearchRepository<AdviceDocument, Long> {
-    Page<AdviceDocument> findByAdviceContentContaining(String keyword, Pageable pageable);
+    Page<AdviceDocument> findByAdviceContent(String keyword, Pageable pageable);
 
 }

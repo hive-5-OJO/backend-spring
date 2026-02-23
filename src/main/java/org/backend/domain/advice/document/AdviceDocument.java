@@ -2,8 +2,10 @@ package org.backend.domain.advice.document;
 
 
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -12,6 +14,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Document(indexName = "advices")
 public class AdviceDocument {
 
