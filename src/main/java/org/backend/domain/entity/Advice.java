@@ -1,13 +1,19 @@
 package org.backend.domain.entity;
+
 import jakarta.persistence.*;
+import lombok.*;
 import org.backend.domain.member.entity.Member;
 import org.backend.domain.subscription.entity.Promotion;
 
 import java.time.LocalDateTime;
 
-
 @Entity
 @Table(name = "advice")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Advice {
 
     @Id
