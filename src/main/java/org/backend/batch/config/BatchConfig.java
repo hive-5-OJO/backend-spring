@@ -19,3 +19,4 @@ public class BatchConfig {
         return new JpaTransactionManager(emf);
     }
 }
+

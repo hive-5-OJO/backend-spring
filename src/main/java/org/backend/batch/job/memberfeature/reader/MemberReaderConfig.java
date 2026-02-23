@@ -18,12 +18,12 @@ public class MemberReaderConfig {
     @Bean
     @StepScope
     public JpaPagingItemReader<Member> memberReader() {
-
         return new JpaPagingItemReaderBuilder<Member>()
                 .name("memberReader")
                 .entityManagerFactory(emf)
                 .queryString("SELECT m FROM Member m")
                 .pageSize(1000)
+                .saveState(false) //멀티 스레드 환경에서는 false 설정 권장
                 .build();
     }
 }

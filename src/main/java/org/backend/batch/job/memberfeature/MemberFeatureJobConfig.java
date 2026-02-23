@@ -1,24 +1,19 @@
 package org.backend.batch.job.memberfeature;
 
 import lombok.RequiredArgsConstructor;
-import org.backend.batch.job.memberfeature.processor.ConsultationProcessor;
-import org.backend.batch.job.memberfeature.processor.MemberLifecycleProcessor;
-import org.backend.batch.job.memberfeature.processor.MonetaryProcessor;
-import org.backend.batch.job.memberfeature.processor.UsageProcessor;
+import org.backend.batch.job.memberfeature.reader.MemberReaderConfig;
 import org.backend.entity.Member;
-import org.backend.entity.feature.ConsultationBasics;
-import org.backend.entity.feature.FeatureUsage;
-import org.backend.entity.feature.Lifecycle;
-import org.backend.entity.feature.Monetary;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.database.JpaItemWriter;
-import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
@@ -27,8 +22,20 @@ public class MemberFeatureJobConfig {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
-    private final JpaPagingItemReader<Member> memberReader;
-    private final JpaItemWriter<Object> jpaWriter;
+    private final MemberReaderConfig memberReaderConfig;
+
+
+     // TaskExecutor 설정
+    @Bean
+    public TaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(4);    // 기본 스레드 4개
+        executor.setMaxPoolSize(8);     // 최대 8개까지 확장
+        executor.setQueueCapacity(500); // 대기열 설정
+        executor.setThreadNamePrefix("batch-thread-");
+        executor.initialize();
+        return executor;
+    }
 
     @Bean
     public Job memberFeatureJob(Step consultationStep,
@@ -44,49 +51,50 @@ public class MemberFeatureJobConfig {
     }
 
     @Bean
-    public Step consultationStep(ConsultationProcessor processor) {
+    public Step consultationStep(ItemProcessor<Member, ?> consultationProcessor,
+                                 ItemWriter<Object> memberWriter) {
         return new StepBuilder("consultationStep", jobRepository)
-                .<Member, ConsultationBasics>chunk(1000, transactionManager)
-                .reader(memberReader)
-                .processor(processor)
-                .writer((JpaItemWriter) jpaWriter)
+                .<Member, Object>chunk(1000, transactionManager)
+                .reader(memberReaderConfig.memberReader())
+                .processor((ItemProcessor<? super Member, ?>) consultationProcessor)
+                .writer(memberWriter)
+                .taskExecutor(taskExecutor())
                 .build();
     }
 
     @Bean
-    public Step lifecycleStep(MemberLifecycleProcessor processor) {
+    public Step lifecycleStep(ItemProcessor<Member, ?> memberLifecycleProcessor,
+                              ItemWriter<Object> memberWriter) {
         return new StepBuilder("lifecycleStep", jobRepository)
-                .<Member, Lifecycle>chunk(1000, transactionManager)
-                .reader(memberReader)
-                .processor(processor)
-                .writer((JpaItemWriter) jpaWriter)
+                .<Member, Object>chunk(1000, transactionManager)
+                .reader(memberReaderConfig.memberReader())
+                .processor((ItemProcessor<? super Member, ?>) memberLifecycleProcessor)
+                .writer(memberWriter)
+                .taskExecutor(taskExecutor())
                 .build();
     }
 
     @Bean
-    public Step monetaryStep(MonetaryProcessor processor) {
+    public Step monetaryStep(ItemProcessor<Member, ?> monetaryProcessor,
+                             ItemWriter<Object> memberWriter) {
         return new StepBuilder("monetaryStep", jobRepository)
-                .<Member, Monetary>chunk(1000, transactionManager)
-                .reader(memberReader)
-                .processor(processor)
-                .writer((JpaItemWriter) jpaWriter)
+                .<Member, Object>chunk(1000, transactionManager)
+                .reader(memberReaderConfig.memberReader())
+                .processor((ItemProcessor<? super Member, ?>) monetaryProcessor)
+                .writer(memberWriter)
+                .taskExecutor(taskExecutor())
                 .build();
     }
 
     @Bean
-    public Step usageStep(UsageProcessor processor) {
+    public Step usageStep(ItemProcessor<Member, ?> usageProcessor,
+                          ItemWriter<Object> memberWriter) {
         return new StepBuilder("usageStep", jobRepository)
-                .<Member, FeatureUsage>chunk(1000, transactionManager)
-                .reader(memberReader)
-                .processor(processor)
-                .writer((JpaItemWriter) jpaWriter)
+                .<Member, Object>chunk(1000, transactionManager)
+                .reader(memberReaderConfig.memberReader())
+                .processor((ItemProcessor<? super Member, ?>) usageProcessor)
+                .writer(memberWriter)
+                .taskExecutor(taskExecutor())
                 .build();
     }
 }
-
-
-
-
-
-
-
