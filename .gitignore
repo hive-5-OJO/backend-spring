@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+.gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -36,3 +37,19 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### 엘라스틱 서치 관련 ###
+es_data/
+
+### Env & YAML (Back-end) ###
+.env
+.env.*
+**/.env
+**/.env.*
+
+*.yml
+*.yaml
+**/*.yml
+**/*.yaml
+
+!.github/workflows/ci.yml
