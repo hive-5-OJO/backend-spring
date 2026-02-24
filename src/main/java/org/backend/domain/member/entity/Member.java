@@ -45,4 +45,7 @@ public class Member {
     @Column(nullable = false, length = 20)
     private String status;
 
+    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY)
+    private MemberConsent consent;
+
 }
