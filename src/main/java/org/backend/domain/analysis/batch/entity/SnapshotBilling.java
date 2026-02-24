@@ -3,6 +3,7 @@ package org.backend.domain.analysis.batch.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.backend.domain.member.entity.Member;
 
@@ -11,6 +12,7 @@ import org.backend.domain.member.entity.Member;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
 public class SnapshotBilling {
 
     @Id

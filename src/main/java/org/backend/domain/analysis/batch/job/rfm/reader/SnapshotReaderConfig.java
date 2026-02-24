@@ -1,0 +1,54 @@
+package org.backend.domain.analysis.batch.job.rfm.reader;
+
+import jakarta.persistence.EntityManagerFactory;
+import lombok.RequiredArgsConstructor;
+import org.backend.domain.analysis.batch.dto.SnapshotWrapper;
+import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.infrastructure.item.database.JpaPagingItemReader;
+import org.springframework.batch.infrastructure.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+
+@Configuration
+@RequiredArgsConstructor
+public class SnapshotReaderConfig {
+
+    private final EntityManagerFactory emf;
+
+    @Bean
+    @StepScope
+    public JpaPagingItemReader<SnapshotWrapper> snapshotReader(
+            @Value("#{jobParameters['baseMonth']}") String baseMonth) {
+        String base = baseMonth;
+        String last = calculateLastMonth(baseMonth);
+
+        return new JpaPagingItemReaderBuilder<SnapshotWrapper>()
+                .name("snapshotReader")
+                .entityManagerFactory(emf)
+                .queryString("SELECT new org.backend.domain.analysis.batch.dto.SnapshotWrapper(i, s, a) " +
+                        " FROM Invoice i " +
+                        " LEFT JOIN SnapshotBilling s ON i.member = s.member " +
+                        " AND s.baseMonth = :last " +
+                        " JOIN Analysis a ON i.member.memberId = a.member.memberId " +
+                        " AND a.baseMonth = :base " +
+                        " WHERE i.baseMonth = :base")
+                .parameterValues(Map.of(
+                    "base", base,
+                    "last", last
+                ))
+                .pageSize(1000)
+                .saveState(false)
+                .build();
+    }
+
+    public String calculateLastMonth(String baseMonth){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+        YearMonth ym = YearMonth.parse(baseMonth, formatter);
+        return ym.minusMonths(1).format(formatter);
+    }
+}

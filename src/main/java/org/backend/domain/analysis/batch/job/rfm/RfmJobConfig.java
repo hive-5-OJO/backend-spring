@@ -1,28 +1,89 @@
-//package org.backend.domain.analysis.batch.job.rfm;
-//
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.batch.core.repository.JobRepository;
-//import org.springframework.batch.core.step.Step;
-//import org.springframework.batch.core.step.builder.StepBuilder;
-//import org.springframework.context.annotation.Bean;
-//import org.springframework.context.annotation.Configuration;
-//
-//@Configuration
-//@RequiredArgsConstructor
-//public class RfmJobConfig {
-//
-//    private final JobRepository jobRepository;
-//
-//    @Bean
-//    public Step rfmCalculateStep(){
-//        return StepBuilder("rfmCalculateStep", jobRepository)
-//                // step - transactionManager, reader, processor, writer
-//                .build();
-//    }
-//
-//    @Bean
-//    public Step billingSnapshotStep(){
-//        return StepBuilder("billingSnapshotStep", jobRepository)
-//                .build();
-//    }
-//}
+package org.backend.domain.analysis.batch.job.rfm;
+
+import lombok.RequiredArgsConstructor;
+import org.backend.domain.analysis.batch.dto.SnapshotWrapper;
+import org.backend.domain.analysis.batch.entity.Monetary;
+import org.backend.domain.analysis.batch.job.rfm.reader.RfmReaderConfig;
+import org.backend.domain.analysis.batch.job.rfm.reader.SnapshotReaderConfig;
+import org.backend.domain.analysis.batch.job.rfm.tasklet.KpiTasklet;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
+import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemReader;
+import org.springframework.batch.infrastructure.item.ItemWriter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
+
+@Configuration
+@RequiredArgsConstructor
+public class RfmJobConfig {
+
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
+    private final RfmReaderConfig rfmReaderConfig;
+    private final KpiTasklet kpiTasklet;
+
+    @Bean
+    public TaskExecutor taskExecutor(){
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(8);
+        executor.setQueueCapacity(500);
+        executor.setThreadNamePrefix("batch-thread-");
+        executor.initialize();
+        return executor;
+    }
+
+    @Bean
+    public Job preAnalysisJob(Step rfmStep){
+        return new JobBuilder("preAnalysisJob", jobRepository)
+                .start(rfmStep)
+                .build();
+    }
+
+    @Bean
+    public Job postAnalysisJob(Step kpiStep, Step snapshotStep){
+        return new JobBuilder("postAnalysisJob", jobRepository)
+                .start(kpiStep)
+                .next(snapshotStep)
+                .build();
+    }
+
+    @Bean
+    public Step rfmStep(ItemProcessor<Monetary, ?> rfmProcessor,
+                        ItemWriter<Object> rfmWriter){
+        return new StepBuilder("rfmStep", jobRepository)
+                .<Monetary, Object>chunk(1000, transactionManager)
+                .reader(rfmReaderConfig.rfmReader())
+                .processor( (ItemProcessor<? super Monetary, ?>) rfmProcessor )
+                .writer(rfmWriter)
+                .taskExecutor(taskExecutor())
+                .build();
+    }
+
+    @Bean
+    public Step kpiStep(){
+        return new StepBuilder("kpiStep", jobRepository)
+                .tasklet(kpiTasklet, transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Step snapshotStep(ItemReader<SnapshotWrapper> snapshotReader,
+                             ItemProcessor<SnapshotWrapper, Object> snapshotProcessor,
+                             ItemWriter<Object> snapshotWriter){
+        return new StepBuilder("snapshotStep", jobRepository)
+                .<SnapshotWrapper, Object>chunk(1000, transactionManager)
+                .reader(snapshotReader)
+                .processor(snapshotProcessor)
+                .writer(snapshotWriter)
+                .taskExecutor(taskExecutor())
+                .build();
+    }
+}

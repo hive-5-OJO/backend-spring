@@ -23,6 +23,7 @@ public class KpiTasklet implements Tasklet {
         String baseMonth = (String)chunkContext.getStepContext().getJobParameters().get("baseMonth");
 
         // 중복 실행 방지 - skip vs over write
+        jdbcTemplate.update("DELETE FROM rfm_kpi WHERE base_month = ?", baseMonth);
 
         // baseMonth 기준 analysis가 존재해야 함
         // crr = analysis.type vip인 수/feature_monetary.is_vip_prev_month true인 수
