@@ -1,11 +1,13 @@
-package org.backend.domain.entity;
+package org.backend.domain.inovice.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payment")
+@Getter
 public class Payment {
 
     @Id
