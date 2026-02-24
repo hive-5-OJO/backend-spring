@@ -1,9 +1,9 @@
-package org.backend.domain.inovice.dto;
+package org.backend.domain.analysis.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.backend.domain.inovice.entity.Invoice;
-import org.backend.domain.inovice.entity.Payment;
+import org.backend.domain.analysis.entity.Invoice;
+import org.backend.domain.analysis.entity.Payment;
 
 import java.time.LocalDate;
 import java.util.List;

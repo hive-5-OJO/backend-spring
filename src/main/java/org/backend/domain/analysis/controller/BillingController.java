@@ -1,9 +1,9 @@
-package org.backend.domain.inovice.controller;
+package org.backend.domain.analysis.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.backend.common.CommonResponse;
-import org.backend.domain.inovice.dto.MonthlyBillingResponse;
-import org.backend.domain.inovice.service.BillingService;
+import org.backend.domain.analysis.dto.MonthlyBillingResponse;
+import org.backend.domain.analysis.service.BillingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

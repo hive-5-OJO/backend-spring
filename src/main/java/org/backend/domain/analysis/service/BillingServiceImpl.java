@@ -1,12 +1,12 @@
-package org.backend.domain.inovice.service;
+package org.backend.domain.analysis.service;
 
 import lombok.RequiredArgsConstructor;
 import org.backend.common.CommonResponse;
 import org.backend.common.exception.CustomException;
 import org.backend.common.exception.ErrorCode;
-import org.backend.domain.inovice.dto.MonthlyBillingResponse;
-import org.backend.domain.inovice.entity.Invoice;
-import org.backend.domain.inovice.repository.InvoiceRepository;
+import org.backend.domain.analysis.entity.Invoice;
+import org.backend.domain.analysis.dto.MonthlyBillingResponse;
+import org.backend.domain.analysis.repository.InvoiceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -2,11 +2,13 @@ package org.backend.domain.analysis.entity;
 
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payment")
+@Getter
 public class Payment {
 
     @Id

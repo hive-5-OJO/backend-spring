@@ -1,6 +1,6 @@
-package org.backend.domain.inovice.repository;
+package org.backend.domain.analysis.repository;
 
-import org.backend.domain.inovice.entity.Invoice;
+import org.backend.domain.analysis.entity.Invoice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

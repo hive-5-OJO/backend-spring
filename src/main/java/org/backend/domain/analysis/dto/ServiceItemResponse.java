@@ -1,8 +1,8 @@
-package org.backend.domain.inovice.dto;
+package org.backend.domain.analysis.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.backend.domain.inovice.entity.InvoiceDetail;
+import org.backend.domain.analysis.entity.InvoiceDetail;
 
 @Getter
 @AllArgsConstructor
