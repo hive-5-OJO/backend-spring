@@ -1,7 +1,7 @@
-package org.backend.domain.inovice.service;
+package org.backend.domain.analysis.service;
 
 import org.backend.common.CommonResponse;
-import org.backend.domain.inovice.dto.MonthlyBillingResponse;
+import org.backend.domain.analysis.dto.MonthlyBillingResponse;
 
 public interface BillingService {
 
