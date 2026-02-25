@@ -1,4 +1,4 @@
-package org.backend.domain.auth.entity;
+package org.backend.domain.admin.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

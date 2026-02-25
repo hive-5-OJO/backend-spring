@@ -1,6 +1,6 @@
-package org.backend.domain.auth.repository;
+package org.backend.domain.admin.repository;
 
-import org.backend.domain.auth.entity.Admin;
+import org.backend.domain.admin.entity.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

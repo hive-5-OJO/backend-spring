@@ -1,6 +1,6 @@
 package org.backend.domain.auth.dto.response;
 
-import org.backend.domain.auth.entity.Admin;
+import org.backend.domain.admin.entity.Admin;
 
 public class AdminMeResponse {
 
