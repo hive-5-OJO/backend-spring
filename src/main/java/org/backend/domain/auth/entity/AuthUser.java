@@ -16,6 +16,7 @@ public class AuthUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "auth_users_id")
     private Long id;
 
     @Column(nullable = false, unique = true)
