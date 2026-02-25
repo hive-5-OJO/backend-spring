@@ -21,6 +21,7 @@ public class VerificationCode {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "verification_codes_id")
     private Long id;
 
     @Column(nullable = false)
