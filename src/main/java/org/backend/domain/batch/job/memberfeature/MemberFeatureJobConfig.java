@@ -55,7 +55,8 @@ public class MemberFeatureJobConfig {
                                  ItemWriter<Object> memberWriter) {
         return new StepBuilder("consultationStep", jobRepository)
                 .<Member, Object>chunk(1000, transactionManager)
-                .reader(memberReaderConfig.memberReader())
+//                .reader(memberReaderConfig.memberReader())
+                .reader(memberReaderConfig.memberReaderTest())
                 .processor((ItemProcessor<? super Member, ?>) consultationProcessor)
                 .writer(memberWriter)
                 .taskExecutor(taskExecutor())
@@ -67,7 +68,8 @@ public class MemberFeatureJobConfig {
                               ItemWriter<Object> memberWriter) {
         return new StepBuilder("lifecycleStep", jobRepository)
                 .<Member, Object>chunk(1000, transactionManager)
-                .reader(memberReaderConfig.memberReader())
+//                .reader(memberReaderConfig.memberReader())
+                .reader(memberReaderConfig.memberReaderTest())
                 .processor((ItemProcessor<? super Member, ?>) memberLifecycleProcessor)
                 .writer(memberWriter)
                 .taskExecutor(taskExecutor())
@@ -79,7 +81,8 @@ public class MemberFeatureJobConfig {
                              ItemWriter<Object> memberWriter) {
         return new StepBuilder("monetaryStep", jobRepository)
                 .<Member, Object>chunk(1000, transactionManager)
-                .reader(memberReaderConfig.memberReader())
+//                .reader(memberReaderConfig.memberReader())
+                .reader(memberReaderConfig.memberReaderTest())
                 .processor((ItemProcessor<? super Member, ?>) monetaryProcessor)
                 .writer(memberWriter)
                 .taskExecutor(taskExecutor())
@@ -91,7 +94,8 @@ public class MemberFeatureJobConfig {
                           ItemWriter<Object> memberWriter) {
         return new StepBuilder("usageStep", jobRepository)
                 .<Member, Object>chunk(1000, transactionManager)
-                .reader(memberReaderConfig.memberReader())
+//                .reader(memberReaderConfig.memberReader())
+                .reader(memberReaderConfig.memberReaderTest())
                 .processor((ItemProcessor<? super Member, ?>) usageProcessor)
                 .writer(memberWriter)
                 .taskExecutor(taskExecutor())

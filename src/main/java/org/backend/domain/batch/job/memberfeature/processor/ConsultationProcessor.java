@@ -109,7 +109,7 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.backend.domain.batch.entity.ConsultationBasics;
-import org.backend.domain.entity.Advice;
+import org.backend.domain.advice.entity.Advice;
 import org.backend.domain.member.entity.Member;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;

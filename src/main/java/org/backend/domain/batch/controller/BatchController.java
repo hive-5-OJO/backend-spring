@@ -33,6 +33,18 @@ public class BatchController {
         return "Batch Started";
     }
 
+    @PostMapping("/run/test")
+    public String runBatchTest() throws Exception {
+
+        JobParameters params = new JobParametersBuilder()
+                .addLong("time", System.currentTimeMillis())
+                .toJobParameters();
+
+        jobLauncher.run(memberFeatureJob, params);
+
+        return "Batch Started";
+    }
+
     @PostMapping("/run/pre")
     public String runPreAnalysis(@RequestParam String baseMonth) throws Exception{
         JobParameters params = new JobParametersBuilder()

@@ -1,4 +1,4 @@
-package org.backend.domain.entity;
+package org.backend.domain.analysis.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,13 +9,14 @@ import org.backend.domain.member.entity.Member;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "invoice")
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
 public class Invoice {
 
     @Id
@@ -41,4 +42,11 @@ public class Invoice {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "invoice", fetch = FetchType.LAZY)
+    private List<InvoiceDetail> invoiceDetails;
+
+    @OneToMany(mappedBy = "invoice", fetch = FetchType.LAZY)
+    private List<Payment> payments;
+
 }

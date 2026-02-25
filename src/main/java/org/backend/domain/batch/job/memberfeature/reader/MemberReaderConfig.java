@@ -26,4 +26,17 @@ public class MemberReaderConfig {
                 .saveState(false) //멀티 스레드 환경에서는 false 설정 권장
                 .build();
     }
+
+    @Bean
+    @StepScope
+    public JpaPagingItemReader<Member> memberReaderTest() {
+        return new JpaPagingItemReaderBuilder<Member>()
+                .name("memberReaderTest")
+                .entityManagerFactory(emf)
+                .queryString("SELECT m FROM Member m")
+                .pageSize(1000)
+                .maxItemCount(10)
+                .saveState(false) //멀티 스레드 환경에서는 false 설정 권장
+                .build();
+    }
 }

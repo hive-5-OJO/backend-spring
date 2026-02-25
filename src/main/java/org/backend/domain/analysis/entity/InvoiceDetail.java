@@ -1,12 +1,15 @@
-package org.backend.domain.entity;
+package org.backend.domain.analysis.entity;
+
 
 import jakarta.persistence.*;
-import org.backend.domain.subscription.entity.Product;
+import lombok.Getter;
+import  org.backend.domain.subscription.entity.Product;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "invoice_detail")
+@Getter
 public class InvoiceDetail {
 
     @Id
