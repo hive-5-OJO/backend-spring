@@ -16,6 +16,7 @@ public class AccessLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "access_logs_id")
     private Long id;
 
     private Long userId;
