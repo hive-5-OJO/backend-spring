@@ -1,8 +1,10 @@
-package org.backend.domain.analysis.batch.job.rfm.processor;
+package org.backend.domain.batch.job.rfm.processor;
 
-import org.backend.domain.analysis.batch.entity.Monetary;
+import org.backend.domain.batch.entity.Monetary;
 import org.backend.domain.analysis.entity.Rfm;
-import org.springframework.batch.infrastructure.item.ItemProcessor;
+//import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.backend.domain.member.entity.Member;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -11,7 +13,11 @@ import java.time.LocalDateTime;
 public class RfmProcessor implements ItemProcessor<Monetary, Rfm> {
     @Override
     public Rfm process(Monetary monetary){
+//        Member member = new Member();
+//        member.setId(monetary.getMemberId());
+
         return Rfm.builder()
+//                .member(member)
                 .memberId(monetary.getMemberId())
                 .recency(monetary.getLastPaymentDate().atStartOfDay())
                 .frequency(monetary.getPaymentCount6m())

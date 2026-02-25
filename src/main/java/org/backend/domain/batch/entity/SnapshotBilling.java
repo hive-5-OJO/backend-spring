@@ -1,4 +1,4 @@
-package org.backend.domain.analysis.batch.entity;
+package org.backend.domain.batch.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

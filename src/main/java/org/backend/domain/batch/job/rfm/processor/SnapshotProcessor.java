@@ -1,11 +1,12 @@
-package org.backend.domain.analysis.batch.job.rfm.processor;
+package org.backend.domain.batch.job.rfm.processor;
 
 import lombok.RequiredArgsConstructor;
-import org.backend.domain.analysis.batch.dto.SnapshotWrapper;
-import org.backend.domain.analysis.batch.entity.SnapshotBilling;
+import org.backend.domain.batch.dto.SnapshotWrapper;
+import org.backend.domain.batch.entity.SnapshotBilling;
 import org.backend.domain.analysis.entity.Analysis;
 import org.backend.domain.entity.Invoice;
-import org.springframework.batch.infrastructure.item.ItemProcessor;
+//import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 @Component

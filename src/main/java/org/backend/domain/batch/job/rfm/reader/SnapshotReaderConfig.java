@@ -1,11 +1,13 @@
-package org.backend.domain.analysis.batch.job.rfm.reader;
+package org.backend.domain.batch.job.rfm.reader;
 
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
-import org.backend.domain.analysis.batch.dto.SnapshotWrapper;
+import org.backend.domain.batch.dto.SnapshotWrapper;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.infrastructure.item.database.JpaPagingItemReader;
-import org.springframework.batch.infrastructure.item.database.builder.JpaPagingItemReaderBuilder;
+//import org.springframework.batch.infrastructure.item.database.JpaPagingItemReader;
+//import org.springframework.batch.infrastructure.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,12 +32,12 @@ public class SnapshotReaderConfig {
         return new JpaPagingItemReaderBuilder<SnapshotWrapper>()
                 .name("snapshotReader")
                 .entityManagerFactory(emf)
-                .queryString("SELECT new org.backend.domain.analysis.batch.dto.SnapshotWrapper(i, s, a) " +
+                .queryString("SELECT new org.backend.domain.batch.dto.SnapshotWrapper(i, s, a) " +
                         " FROM Invoice i " +
                         " LEFT JOIN SnapshotBilling s ON i.member = s.member " +
                         " AND s.baseMonth = :last " +
-                        " JOIN Analysis a ON i.member.memberId = a.member.memberId " +
-                        " AND a.baseMonth = :base " +
+                        " JOIN Analysis a ON i.member.id = a.member.id " +
+                        " AND FUNCTION('DATE_FORMAT', a.createdAt, '%Y%m') = :base " +
                         " WHERE i.baseMonth = :base")
                 .parameterValues(Map.of(
                     "base", base,

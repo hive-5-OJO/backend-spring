@@ -1,11 +1,13 @@
-package org.backend.domain.analysis.batch.job.rfm.tasklet;
+package org.backend.domain.batch.job.rfm.tasklet;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
-import org.springframework.batch.core.step.StepContribution;
+//import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.infrastructure.repeat.RepeatStatus;
+//import org.springframework.batch.infrastructure.repeat.RepeatStatus;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -31,22 +33,22 @@ public class KpiTasklet implements Tasklet {
         // nrr = monthly_revenue/prev_monthly_revenue (당월 매출/지난달 매출)
         String sql = "Insert INTO rfm_kpi(crr, churn_rate, nrr, base_month)" +
                     "Select " +
-                    "-- CRR"+
+                    // CRR
                     "CASE " +
                         "WHEN COUNT(CASE WHEN fm.is_vip_prev_month = TRUE THEN 1 END) = 0 THEN 0.0 "+
                         "ELSE CAST( COUNT("+
                             "CASE WHEN a.type = 'VIP' AND fm.is_vip_prev_month = TRUE THEN 1 END"+
-                            ") AS Decimal(10,4) "+
+                            ") AS Decimal(10,4) )"+
                             "/ COUNT(CASE WHEN fm.is_vip_prev_month = TRUE THEN 1 END) "+
                     "END AS crr, " +
-                    "-- Churn Rate"+
+                    // Churn Rate
                     "COALESCE("+
                         "CAST( COUNT("+
                             "CASE WHEN fl.is_terminated_flag = TRUE THEN 1 END" +
                         ") AS Decimal(10,4) ) "+
                         "/ NULLIF(COUNT(*), 0) "+
                     ", 0.0) AS churn_rate, "+
-                    "-- NRR"+
+                    // NRR
                     "CASE "+
                         "WHEN SUM(fm.prev_monthly_revenue) = 0 THEN 0.0 "+
                         "ELSE SUM(fm.monthly_revenue) / SUM(fm.prev_monthly_revenue) "  +

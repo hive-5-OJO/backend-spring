@@ -1,6 +1,6 @@
-package org.backend.domain.analysis.batch.repository;
+package org.backend.domain.batch.repository;
 
-import org.backend.domain.analysis.batch.entity.SnapshotBilling;
+import org.backend.domain.batch.entity.SnapshotBilling;
 import org.backend.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 

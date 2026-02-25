@@ -1,19 +1,24 @@
-package org.backend.domain.analysis.batch.job.rfm;
+package org.backend.domain.batch.job.rfm;
 
 import lombok.RequiredArgsConstructor;
-import org.backend.domain.analysis.batch.dto.SnapshotWrapper;
-import org.backend.domain.analysis.batch.entity.Monetary;
-import org.backend.domain.analysis.batch.job.rfm.reader.RfmReaderConfig;
-import org.backend.domain.analysis.batch.job.rfm.reader.SnapshotReaderConfig;
-import org.backend.domain.analysis.batch.job.rfm.tasklet.KpiTasklet;
-import org.springframework.batch.core.job.Job;
+import org.backend.domain.batch.dto.SnapshotWrapper;
+import org.backend.domain.batch.entity.SnapshotBilling;
+import org.backend.domain.batch.entity.Monetary;
+import org.backend.domain.batch.job.rfm.reader.RfmReaderConfig;
+import org.backend.domain.batch.job.rfm.tasklet.KpiTasklet;
+//import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.core.step.Step;
+//import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.infrastructure.item.ItemProcessor;
-import org.springframework.batch.infrastructure.item.ItemReader;
-import org.springframework.batch.infrastructure.item.ItemWriter;
+//import org.springframework.batch.infrastructure.item.ItemProcessor;
+//import org.springframework.batch.infrastructure.item.ItemReader;
+//import org.springframework.batch.infrastructure.item.ItemWriter;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -30,7 +35,7 @@ public class RfmJobConfig {
     private final KpiTasklet kpiTasklet;
 
     @Bean
-    public TaskExecutor taskExecutor(){
+    public TaskExecutor taskExecutor1(){
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(8);
@@ -63,7 +68,7 @@ public class RfmJobConfig {
                 .reader(rfmReaderConfig.rfmReader())
                 .processor( (ItemProcessor<? super Monetary, ?>) rfmProcessor )
                 .writer(rfmWriter)
-                .taskExecutor(taskExecutor())
+                .taskExecutor(taskExecutor1())
                 .build();
     }
 
@@ -76,14 +81,14 @@ public class RfmJobConfig {
 
     @Bean
     public Step snapshotStep(ItemReader<SnapshotWrapper> snapshotReader,
-                             ItemProcessor<SnapshotWrapper, Object> snapshotProcessor,
+                             ItemProcessor<SnapshotWrapper, SnapshotBilling> snapshotProcessor,
                              ItemWriter<Object> snapshotWriter){
         return new StepBuilder("snapshotStep", jobRepository)
                 .<SnapshotWrapper, Object>chunk(1000, transactionManager)
                 .reader(snapshotReader)
                 .processor(snapshotProcessor)
                 .writer(snapshotWriter)
-                .taskExecutor(taskExecutor())
+                .taskExecutor(taskExecutor1())
                 .build();
     }
 }
