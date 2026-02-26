@@ -1,7 +1,7 @@
 package org.backend.domain.advice.entity;
 
 import jakarta.persistence.*;
-import org.backend.domain.admin.entity.Admin;
+import org.backend.domain.auth.entity.Admin;
 import org.backend.domain.member.entity.Member;
 import org.backend.domain.subscription.entity.Promotion;
 
@@ -10,6 +10,11 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "advice")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Advice {
 
     @Id
