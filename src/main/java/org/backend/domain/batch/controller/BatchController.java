@@ -1,15 +1,17 @@
 package org.backend.domain.batch.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.backend.common.CommonResponse;
+import org.backend.domain.batch.service.BatchResetService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ public class BatchController {
     private final Job memberFeatureJob;
     private final Job preAnalysisJob;
     private final Job postAnalysisJob;
+    private final BatchResetService batchResetService;
 
     @PostMapping("/run")
     public String runBatch() throws Exception {
@@ -78,5 +81,22 @@ public class BatchController {
         }
 
         return "kpi and snapshot batch started for " + baseMonth;
+    }
+
+    @DeleteMapping("/del")
+    public ResponseEntity<CommonResponse<String>> deleteOldData(){
+        int count = batchResetService.deleteOldData();
+        return ResponseEntity.ok(CommonResponse.success(null, "5년 이상 된 데이터 " + count + "건 삭제 완료"));
+    }
+
+    // 분석 데이터 초기화
+    @DeleteMapping("/reset")
+    public ResponseEntity<CommonResponse<String>> resetBatchData(
+            @RequestParam(required = false) List<String> months,
+            @RequestParam(defaultValue = "false") boolean isAll
+    ){
+        batchResetService.resetBatchData(months, isAll);
+        String msg = isAll ? "전체 데이터 초기화 완료" : months + "달 데이터 초기화 완료";
+        return ResponseEntity.ok(CommonResponse.success(null, msg));
     }
 }
