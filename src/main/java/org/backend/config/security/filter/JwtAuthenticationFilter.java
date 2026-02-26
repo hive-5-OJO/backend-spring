@@ -33,21 +33,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        if (StringUtils.hasText(token) && jwtProvider.validate(token)) {
+        if (StringUtils.hasText(token) && jwtProvider.validate(token) && jwtProvider.isAccessToken(token)) {
             Claims claims = jwtProvider.getClaims(token);
 
             String adminId = claims.getSubject();
-            String role = (String) claims.get("role");
+            String role = (String) claims.get("role"); // "ADMIN"
 
-            // principal은 보통 username/email을 넣지만, 여기선 adminId로 둠(원하면 email로 바꿔도 됨)
-            List<SimpleGrantedAuthority> authorities =
-                    role == null ? List.of() : List.of(new SimpleGrantedAuthority(role));
+            List<SimpleGrantedAuthority> authorities = toAuthorities(role);
 
             Authentication auth = new UsernamePasswordAuthenticationToken(adminId, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private List<SimpleGrantedAuthority> toAuthorities(String role) {
+        if (!StringUtils.hasText(role)) return List.of();
+
+        // 이미 ROLE_가 붙어있다면 중복 방지
+        String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+
+        return List.of(new SimpleGrantedAuthority(authority));
     }
 
     private String resolveToken(HttpServletRequest request) {

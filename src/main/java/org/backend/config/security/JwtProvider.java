@@ -17,11 +17,8 @@ public class JwtProvider {
     private final String secret;
     private SecretKey key;
 
-    // Access: 1시간
-    private final long accessTokenValidityMs = 60 * 60 * 1000L;
-
-    // Refresh: 7일
-    private final long refreshTokenValidityMs = 7L * 24 * 60 * 60 * 1000L;
+    private final long accessTokenValidityMs = 60 * 60 * 1000L; //at : 1일
+    private final long refreshTokenValidityMs = 7L * 24 * 60 * 60 * 1000L; //rt:7일
 
     public JwtProvider(@Value("${app.jwt.secret}") String secret) {
         this.secret = secret;
@@ -32,7 +29,7 @@ public class JwtProvider {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // ====== Access Token ======
+    // role: "CS" | "MARKETING" | "ADMIN"
     public String generateAccessToken(Long adminId, String email, String role) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + accessTokenValidityMs);
@@ -40,22 +37,21 @@ public class JwtProvider {
         return Jwts.builder()
                 .subject(String.valueOf(adminId))
                 .claim("email", email)
-                .claim("role", role)      // ex) ROLE_ADMIN
-                .claim("typ", "access")   // typ로 토큰 타입 통일
+                .claim("role", role)      // "ADMIN" 같이 ROLE_ 없는 값
+                .claim("typ", "access")
                 .issuedAt(now)
                 .expiration(exp)
                 .signWith(key)
                 .compact();
     }
 
-    // ====== Refresh Token ======
     public String generateRefreshToken(Long adminId) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + refreshTokenValidityMs);
 
         return Jwts.builder()
                 .subject(String.valueOf(adminId))
-                .claim("typ", "refresh")  // typ로 토큰 타입 통일
+                .claim("typ", "refresh")
                 .issuedAt(now)
                 .expiration(exp)
                 .signWith(key)

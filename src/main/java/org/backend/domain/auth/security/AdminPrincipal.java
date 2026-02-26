@@ -11,7 +11,7 @@ public class AdminPrincipal implements UserDetails {
 
     private final Long adminId;
     private final String email;
-    private final String role;
+    private final String role; // "CS" | "MARKETING" | "ADMIN"
 
     public AdminPrincipal(Long adminId, String email, String role) {
         this.adminId = adminId;
@@ -34,32 +34,29 @@ public class AdminPrincipal implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // role 예: "ROLE_ADMIN" 형태로 들어온다고 가정
-        return List.of(new SimpleGrantedAuthority(role));
+        if (role == null || role.isBlank()) return List.of();
+
+        // role은 "ADMIN" 같은 값으로 들어오고,
+        // Security 권한은 "ROLE_ADMIN" 형태로 맞춘다.
+        String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+
+        return List.of(new SimpleGrantedAuthority(authority));
     }
 
     @Override
     public String getPassword() {
-        return null; // JWT 방식이라 password는 principal에서 안 씀
+        return null; // JWT 방식이라 password는 principal에서 사용하지 않음
     }
 
     @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+    public boolean isAccountNonExpired() { return true; }
 
     @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+    public boolean isAccountNonLocked() { return true; }
 
     @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+    public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() {
-        return true;
-    }
+    public boolean isEnabled() { return true; }
 }
