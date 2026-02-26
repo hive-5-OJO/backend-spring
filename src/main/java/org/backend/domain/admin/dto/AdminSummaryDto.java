@@ -23,7 +23,7 @@ public record AdminSummaryDto(
                 a.getEmail(),
                 a.getPhone(),
                 a.getGoogle(),
-                a.getRole(),
+                a.getRole().name(),
                 a.getStatus(),
                 a.getCreatedAt(),
                 a.getUpdatedAt()

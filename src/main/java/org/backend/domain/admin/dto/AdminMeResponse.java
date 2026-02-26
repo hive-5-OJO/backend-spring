@@ -10,7 +10,7 @@ public class AdminMeResponse {
     private String email;
     private String phone;
     private Boolean google;
-    private String role;
+    private String role; // "CS" | "MARKETING" | "ADMIN"
     private AdminStatus status;
 
     public AdminMeResponse() {}
@@ -33,7 +33,7 @@ public class AdminMeResponse {
                 admin.getEmail(),
                 admin.getPhone(),
                 admin.getGoogle(),
-                admin.getRole(),
+                admin.getRole().name(),
                 admin.getStatus()
         );
     }
