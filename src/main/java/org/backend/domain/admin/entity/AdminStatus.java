@@ -1,4 +1,6 @@
 package org.backend.domain.admin.entity;
 
-public class AdminStatus {
+public enum AdminStatus {
+    ACTIVE,
+    INACTIVE
 }

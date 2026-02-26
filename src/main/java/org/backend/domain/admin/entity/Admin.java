@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 import java.time.LocalDateTime;
 
@@ -47,8 +49,9 @@ public class Admin {
     private String role;
 
     // 재직/퇴사 같은 상태값
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String status;
+    private AdminStatus status;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -59,7 +62,7 @@ public class Admin {
     private LocalDateTime updatedAt;
 
     @Builder
-    private Admin(String name, String email, String password, String phone, Boolean google, String role, String status) {
+    private Admin(String name, String email, String password, String phone, Boolean google, String role, AdminStatus status) {
         this.name = name;
         this.email = email;
         this.password = password;
@@ -77,7 +80,7 @@ public class Admin {
                 .phone("000-0000-0000")
                 .google(true)
                 .role("ROLE_ADMIN")
-                .status("ACTIVE")
+                .status(AdminStatus.ACTIVE)
                 .build();
     }
 
@@ -88,8 +91,7 @@ public class Admin {
     public void changeRole(String role) {
         this.role = role;
     }
-
-    public void changeStatus(String status) {
+    public void changeStatus(AdminStatus status) {
         this.status = status;
     }
 }
