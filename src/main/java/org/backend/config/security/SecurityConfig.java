@@ -76,7 +76,7 @@ public class SecurityConfig {
 
         // 프론트 주소(환경별 추가)
         config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
+                "http://localhost:5173",
                 "http://127.0.0.1:3000",
                 "https://frontend-react-virid.vercel.app/"
         ));
