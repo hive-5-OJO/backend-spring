@@ -21,8 +21,7 @@ public class Rfm {
     private Long memberId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "member_id", nullable = false, insertable = false, updatable = false)
     private Member member;
 
     private LocalDateTime recency;

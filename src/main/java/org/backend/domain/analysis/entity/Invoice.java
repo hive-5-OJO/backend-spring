@@ -1,8 +1,10 @@
 package org.backend.domain.analysis.entity;
 
-
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.backend.domain.member.entity.Member;
 
 import java.time.LocalDate;
@@ -12,6 +14,9 @@ import java.util.List;
 @Entity
 @Table(name = "invoice")
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Invoice {
 
     @Id
@@ -44,6 +49,4 @@ public class Invoice {
     @OneToMany(mappedBy = "invoice", fetch = FetchType.LAZY)
     private List<Payment> payments;
 
-
 }
-
