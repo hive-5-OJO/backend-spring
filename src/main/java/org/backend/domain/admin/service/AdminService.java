@@ -7,6 +7,7 @@ import org.backend.domain.admin.entity.Admin;
 import org.backend.domain.admin.entity.AdminRole;
 import org.backend.domain.admin.entity.AdminStatus;
 import org.backend.domain.admin.repository.AdminRepository;
+import org.backend.domain.auth.repository.RefreshTokenRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ import org.springframework.util.StringUtils;
 public class AdminService {
 
     private final AdminRepository adminRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     public Page<AdminSummaryDto> getAdmins(Integer page, Integer size, String keyword, AdminStatus status) {
         int p = (page == null) ? 0 : Math.max(page, 0);
@@ -63,7 +65,9 @@ public class AdminService {
             throw new IllegalArgumentException("GUEST 계정만 권한 변경이 가능합니다.");
         }
 
-        target.changeRole(newRole); // 엔티티 메서드 필요
+        target.changeRole(newRole);
+        //권한 즉시 반영을 위해 refresh 토큰 무효화(재로그인/재발급 강제)
+        refreshTokenRepository.deleteByAdminId(target.getId());
         return AdminRoleUpdateResponse.of(target.getId(), target.getRole());
     }
 }
