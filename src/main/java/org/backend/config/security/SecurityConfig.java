@@ -1,4 +1,3 @@
-// backend-spring/src/main/java/org/backend/config/security/SecurityConfig.java
 package org.backend.config.security;
 
 import org.backend.config.security.filter.JwtAuthenticationFilter;
@@ -7,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,7 +14,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
+@EnableMethodSecurity
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -33,34 +39,21 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtProvider);
 
         http
-                // REST API 기준: CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
-
-                // 기본 폼 로그인/Basic 로그인 비활성화
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
-
-                // 세션 사용 안함(JWT)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 401/403 예외를 ApiError JSON으로 내려주기
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(securityExceptionHandler) // 401
-                        .accessDeniedHandler(securityExceptionHandler)       // 403
+                        .authenticationEntryPoint(securityExceptionHandler)
+                        .accessDeniedHandler(securityExceptionHandler)
                 )
 
-                // CORS
+                // CORS 활성화  (corsConfigurationSource Bean 사용)
                 .cors(Customizer.withDefaults())
 
-                // 인가 정책
                 .authorizeHttpRequests(auth -> auth
-                        // 로그인/토큰 재발급/구글 콜백 등 인증 관련은 열어두기
                         .requestMatchers("/api/auth/**").permitAll()
-                        
-                        // 디버깅용(잠시추가)
                         .requestMatchers("/error").permitAll()
-
-                        // Swagger 사용 중이면 열어둠 (필요 없으면 삭제)
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
@@ -68,17 +61,46 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // OPTIONS preflight 허용
+                        // Preflight 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // 그 외는 인증 필요
                         .anyRequest().authenticated()
                 )
-
-                // JWT 필터는 UsernamePasswordAuthenticationFilter 앞에
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    //  프론트에서 오는 요청 허용
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        // 프론트 주소(환경별 추가)
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://127.0.0.1:3000",
+                "https://frontend-react-virid.vercel.app/"
+        ));
+
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+
+        // Authorization(JWT), Content-Type(JSON) 같은 헤더 허용
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+
+        // 프론트에서 응답 헤더를 읽어야 하면 노출(expose) 설정
+        config.setExposedHeaders(List.of("Authorization"));
+
+        // 쿠키/세션을 쓸 때 필요. (JWT를 Authorization 헤더로만 쓰면 false로 둬도 되지만,
+        // 프론트에서 credentials 옵션을 켤 가능성이 있으면 true로 두는 편이 안전)
+        config.setAllowCredentials(true);
+
+        // preflight 캐시 시간(초)
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean

@@ -27,17 +27,18 @@ public class GoogleOAuthService {
     public LoginResponse loginWithCode(String code) {
         GoogleUserInfo userInfo = googleOAuthClient.getUserInfoByCode(code);
 
-        whitelistService.validate(userInfo.email());
+        // 정책 : 없으면 자동 등록 후 통과
+        whitelistService.validateAndAutoRegister(userInfo.email());
 
         Admin admin = adminRepository.findByEmail(userInfo.email())
                 .orElseGet(() -> adminRepository.save(Admin.createGoogleUser(userInfo.name(), userInfo.email())));
 
-        String accessToken = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), admin.getRole());
+        String accessToken = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), admin.getRole().name());
         String refreshToken = jwtProvider.generateRefreshToken(admin.getId());
 
         upsertRefreshToken(admin.getId(), refreshToken);
 
-        return new LoginResponse(accessToken, refreshToken, admin.getId(), admin.getEmail(), admin.getRole());
+        return new LoginResponse(accessToken, refreshToken, admin.getId(), admin.getEmail(), admin.getRole().name());
     }
 
     private void upsertRefreshToken(Long adminId, String token) {
