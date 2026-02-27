@@ -1,7 +1,7 @@
 package org.backend.domain.advice.entity;
 
 import jakarta.persistence.*;
-
+import lombok.*;
 import org.backend.domain.admin.entity.Admin;
 
 import org.backend.domain.member.entity.Member;
