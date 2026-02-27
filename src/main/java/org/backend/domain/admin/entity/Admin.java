@@ -34,21 +34,19 @@ public class Admin {
     @Column(nullable = false, length = 255)
     private String email;
 
-    // 일반 로그인 계정은 password 필요, 구글 로그인 계정은 null 허용
     @Column(length = 255)
     private String password;
 
     @Column(nullable = false, length = 15)
     private String phone;
 
-    // google 로그인 계정 여부
     @Column(nullable = false)
     private Boolean google;
 
-    @Column(length = 20)
-    private String role;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private AdminRole role;
 
-    // 재직/퇴사 같은 상태값
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private AdminStatus status;
@@ -62,7 +60,8 @@ public class Admin {
     private LocalDateTime updatedAt;
 
     @Builder
-    private Admin(String name, String email, String password, String phone, Boolean google, String role, AdminStatus status) {
+    private Admin(String name, String email, String password, String phone,
+                  Boolean google, AdminRole role, AdminStatus status) {
         this.name = name;
         this.email = email;
         this.password = password;
@@ -79,7 +78,7 @@ public class Admin {
                 .password(null)
                 .phone("000-0000-0000")
                 .google(true)
-                .role("ROLE_ADMIN")
+                .role(AdminRole.GUEST)
                 .status(AdminStatus.ACTIVE)
                 .build();
     }
@@ -88,9 +87,10 @@ public class Admin {
         this.password = encodedPassword;
     }
 
-    public void changeRole(String role) {
+    public void changeRole(AdminRole role) {
         this.role = role;
     }
+
     public void changeStatus(AdminStatus status) {
         this.status = status;
     }
