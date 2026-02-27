@@ -1,4 +1,9 @@
 package org.backend.domain.admin.dto.response;
 
-public record AdminRoleUpdateResponse() {
+import org.backend.domain.admin.entity.AdminRole;
+
+public record AdminRoleUpdateResponse(Long adminId, AdminRole role) {
+    public static AdminRoleUpdateResponse of(Long adminId, AdminRole role) {
+        return new AdminRoleUpdateResponse(adminId, role);
+    }
 }

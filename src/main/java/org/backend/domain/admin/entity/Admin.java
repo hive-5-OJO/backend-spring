@@ -78,7 +78,7 @@ public class Admin {
                 .password(null)
                 .phone("000-0000-0000")
                 .google(true)
-                .role(AdminRole.ADMIN)
+                .role(AdminRole.GUEST)
                 .status(AdminStatus.ACTIVE)
                 .build();
     }

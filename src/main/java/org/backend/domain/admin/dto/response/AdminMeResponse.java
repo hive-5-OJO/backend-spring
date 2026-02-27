@@ -1,4 +1,4 @@
-package org.backend.domain.admin.dto;
+package org.backend.domain.admin.dto.response;
 
 import org.backend.domain.admin.entity.Admin;
 import org.backend.domain.admin.entity.AdminStatus;

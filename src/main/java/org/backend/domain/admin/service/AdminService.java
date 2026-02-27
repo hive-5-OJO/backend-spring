@@ -1,11 +1,16 @@
 package org.backend.domain.admin.service;
 
 import lombok.RequiredArgsConstructor;
-import org.backend.domain.admin.dto.AdminSummaryDto;
+import org.backend.domain.admin.dto.response.AdminRoleUpdateResponse;
+import org.backend.domain.admin.dto.response.AdminSummaryDto;
 import org.backend.domain.admin.entity.Admin;
+import org.backend.domain.admin.entity.AdminRole;
 import org.backend.domain.admin.entity.AdminStatus;
 import org.backend.domain.admin.repository.AdminRepository;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -42,5 +47,23 @@ public class AdminService {
         }
 
         return result.map(AdminSummaryDto::from);
+    }
+
+    //  ADMIN이 GUEST를 CS/MARKETING으로만 변경
+    @Transactional
+    public AdminRoleUpdateResponse updateRole(Long targetAdminId, AdminRole newRole) {
+        if (newRole != AdminRole.CS && newRole != AdminRole.MARKETING) {
+            throw new IllegalArgumentException("GUEST는 CS 또는 MARKETING으로만 변경할 수 있습니다.");
+        }
+
+        Admin target = adminRepository.findById(targetAdminId)
+                .orElseThrow(() -> new IllegalArgumentException("대상 관리자 계정을 찾을 수 없습니다."));
+
+        if (target.getRole() != AdminRole.GUEST) {
+            throw new IllegalArgumentException("GUEST 계정만 권한 변경이 가능합니다.");
+        }
+
+        target.changeRole(newRole); // 엔티티 메서드 필요
+        return AdminRoleUpdateResponse.of(target.getId(), target.getRole());
     }
 }
