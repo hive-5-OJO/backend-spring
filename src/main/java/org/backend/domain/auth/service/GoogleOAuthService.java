@@ -27,7 +27,8 @@ public class GoogleOAuthService {
     public LoginResponse loginWithCode(String code) {
         GoogleUserInfo userInfo = googleOAuthClient.getUserInfoByCode(code);
 
-        whitelistService.validate(userInfo.email());
+        // 정책 : 없으면 자동 등록 후 통과
+        whitelistService.validateAndAutoRegister(userInfo.email());
 
         Admin admin = adminRepository.findByEmail(userInfo.email())
                 .orElseGet(() -> adminRepository.save(Admin.createGoogleUser(userInfo.name(), userInfo.email())));
