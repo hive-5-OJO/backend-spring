@@ -1,4 +1,3 @@
-// backend-spring/src/main/java/org/backend/domain/auth/service/AccessLogService.java
 package org.backend.domain.auth.service;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,24 +20,27 @@ public class AccessLogService {
      * 메인 트랜잭션이 실패해도 로그는 남기기 위해 REQUIRES_NEW
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void log(HttpServletRequest request,
-                    Long userId,
-                    String email,
-                    String role,
-                    int statusCode) {
+    public void log(HttpServletRequest request, Long userId, String email, String role, int statusCode) {
+        try {
+            AccessLog log = AccessLog.builder()
+                    .userId(userId)
+                    .email(email)
+                    .role(role)
+                    .method(request.getMethod())
+                    .path(request.getRequestURI())
+                    .statusCode(statusCode)
+                    .ip(extractClientIp(request))
+                    .userAgent(trim(request.getHeader("User-Agent"), 255))
+                    .build();
 
-        AccessLog log = AccessLog.builder()
-                .userId(userId)
-                .email(email)
-                .role(role)
-                .method(request.getMethod())
-                .path(request.getRequestURI())
-                .statusCode(statusCode)
-                .ip(extractClientIp(request))
-                .userAgent(request.getHeader("User-Agent"))
-                .build();
+            accessLogRepository.save(log);
+        } catch (Exception ignored) {
+        }
+    }
 
-        accessLogRepository.save(log);
+    private String trim(String v, int max) {
+        if (v == null) return null;
+        return v.length() <= max ? v : v.substring(0, max);
     }
 
     private String extractClientIp(HttpServletRequest request) {
