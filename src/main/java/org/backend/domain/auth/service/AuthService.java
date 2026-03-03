@@ -2,12 +2,12 @@ package org.backend.domain.auth.service;
 
 import io.jsonwebtoken.Claims;
 import org.backend.config.security.JwtProvider;
+import org.backend.domain.admin.entity.Admin;
 import org.backend.domain.auth.dto.request.LoginRequest;
 import org.backend.domain.auth.dto.request.RefreshRequest;
 import org.backend.domain.auth.dto.response.LoginResponse;
 import org.backend.domain.auth.dto.response.MeResponse;
 import org.backend.domain.auth.dto.response.TokenResponse;
-import org.backend.domain.admin.entity.Admin;
 import org.backend.domain.auth.entity.RefreshToken;
 import org.backend.domain.admin.repository.AdminRepository;
 import org.backend.domain.auth.repository.RefreshTokenRepository;
@@ -38,7 +38,6 @@ public class AuthService {
         Admin admin = adminRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
 
-        // 구글 계정은 비번 로그인 막기(정책 변경 가능)
         if (Boolean.TRUE.equals(admin.getGoogle())) {
             throw new IllegalArgumentException("구글 로그인 계정입니다. 구글 로그인을 이용하세요.");
         }
@@ -51,25 +50,23 @@ public class AuthService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-        String accessToken = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), admin.getRole());
+        String role = admin.getRole().name(); // "ADMIN"
+        String accessToken = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), role);
         String refreshToken = jwtProvider.generateRefreshToken(admin.getId());
 
-        // refresh upsert 저장 (로그인 시점에 항상 최신 refresh로 교체)
         upsertRefreshToken(admin.getId(), refreshToken);
 
-        return new LoginResponse(accessToken, refreshToken, admin.getId(), admin.getEmail(), admin.getRole());
+        return new LoginResponse(accessToken, refreshToken, admin.getId(), admin.getEmail(), role);
     }
 
     @Transactional(readOnly = true)
     public MeResponse me(Long adminId) {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new IllegalArgumentException("관리자 정보를 찾을 수 없습니다."));
-        return new MeResponse(admin.getId(), admin.getEmail(), admin.getRole());
+
+        return new MeResponse(admin.getId(), admin.getEmail(), admin.getRole().name());
     }
 
-    /**
-     * refresh → access 재발급 (+ refresh 로테이션)
-     */
     @Transactional
     public TokenResponse refresh(RefreshRequest request) {
         String refreshToken = request.getRefreshToken();
@@ -84,7 +81,6 @@ public class AuthService {
         RefreshToken saved = refreshTokenRepository.findByAdminId(adminId)
                 .orElseThrow(() -> new IllegalArgumentException("리프레시 토큰이 만료되었거나 로그아웃 상태입니다."));
 
-        // DB에 저장된 refresh와 일치해야만 인정(탈취 토큰 차단)
         if (!refreshToken.equals(saved.getToken())) {
             refreshTokenRepository.delete(saved);
             throw new IllegalArgumentException("리프레시 토큰이 일치하지 않습니다. 다시 로그인하세요.");
@@ -93,18 +89,15 @@ public class AuthService {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new IllegalArgumentException("관리자 정보를 찾을 수 없습니다."));
 
-        String newAccess = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), admin.getRole());
+        String role = admin.getRole().name(); // "ADMIN"
+        String newAccess = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), role);
         String newRefresh = jwtProvider.generateRefreshToken(admin.getId());
 
-        // 로테이션: 새 refresh로 덮어쓰기
         upsertRefreshToken(admin.getId(), newRefresh);
 
         return new TokenResponse(newAccess, newRefresh);
     }
 
-    /**
-     * 로그아웃: refresh 폐기
-     */
     @Transactional
     public void logout(Long adminId) {
         refreshTokenRepository.deleteByAdminId(adminId);
