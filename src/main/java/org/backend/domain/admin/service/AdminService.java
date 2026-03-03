@@ -2,6 +2,7 @@ package org.backend.domain.admin.service;
 
 import lombok.RequiredArgsConstructor;
 import org.backend.domain.admin.dto.response.AdminRoleUpdateResponse;
+import org.backend.domain.admin.dto.response.AdminStatusUpdateResponse;
 import org.backend.domain.admin.dto.response.AdminSummaryDto;
 import org.backend.domain.admin.entity.Admin;
 import org.backend.domain.admin.entity.AdminRole;
@@ -35,9 +36,7 @@ public class AdminService {
 
         Page<Admin> result;
         if (hasKeyword && hasStatus) {
-            result = adminRepository.findByStatusAndEmailContainingIgnoreCaseOrStatusAndNameContainingIgnoreCase(
-                    status, keyword, status, keyword, pageable
-            );
+            result = adminRepository.searchByStatusAndKeyword(status, keyword, pageable);
         } else if (hasKeyword) {
             result = adminRepository.findByEmailContainingIgnoreCaseOrNameContainingIgnoreCase(
                     keyword, keyword, pageable
@@ -70,4 +69,23 @@ public class AdminService {
         refreshTokenRepository.deleteByAdminId(target.getId());
         return AdminRoleUpdateResponse.of(target.getId(), target.getRole());
     }
+
+    @Transactional
+    public AdminStatusUpdateResponse updateStatus(Long targetAdminId, AdminStatus newStatus) {
+        Admin target = adminRepository.findById(targetAdminId)
+                .orElseThrow(() -> new IllegalArgumentException("대상 관리자 계정을 찾을 수 없습니다."));
+
+        // 멱등 처리: 같은 값이면 그냥 반환
+        if (target.getStatus() == newStatus) {
+            return AdminStatusUpdateResponse.of(target.getId(), target.getStatus());
+        }
+
+        target.changeStatus(newStatus);
+
+        // 상태 변경 즉시 반영: RT 삭제 (ACTIVE 삭제해도 무방)
+        refreshTokenRepository.deleteByAdminId(target.getId());
+
+        return AdminStatusUpdateResponse.of(target.getId(), target.getStatus());
+    }
+
 }
