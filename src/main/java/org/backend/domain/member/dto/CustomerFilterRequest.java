@@ -10,5 +10,6 @@ import lombok.Setter;
 public class CustomerFilterRequest {
     private String segment;
     private String frequency;
+    private String service;
     private Long categoryId;
 }

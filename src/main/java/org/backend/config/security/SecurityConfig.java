@@ -46,7 +46,7 @@ public class SecurityConfig {
                 // 401/403 예외를 ApiError JSON으로 내려주기
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(securityExceptionHandler) // 401
-                        .accessDeniedHandler(securityExceptionHandler)       // 403
+                        .accessDeniedHandler(securityExceptionHandler) // 403
                 )
 
                 // CORS
@@ -56,7 +56,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 로그인/토큰 재발급/구글 콜백 등 인증 관련은 열어두기
                         .requestMatchers("/api/auth/**").permitAll()
-                        
+
                         // 디버깅용(잠시추가)
                         .requestMatchers("/error").permitAll()
 
@@ -65,15 +65,14 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
+                                "/webjars/**")
+                        .permitAll()
 
                         // OPTIONS preflight 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // 그 외는 인증 필요
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
 
                 // JWT 필터는 UsernamePasswordAuthenticationFilter 앞에
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
