@@ -3,13 +3,14 @@ package org.backend.domain.auth.service;
 import io.jsonwebtoken.Claims;
 import org.backend.config.security.JwtProvider;
 import org.backend.domain.admin.entity.Admin;
+import org.backend.domain.admin.entity.AdminStatus;
+import org.backend.domain.admin.repository.AdminRepository;
 import org.backend.domain.auth.dto.request.LoginRequest;
 import org.backend.domain.auth.dto.request.RefreshRequest;
 import org.backend.domain.auth.dto.response.LoginResponse;
 import org.backend.domain.auth.dto.response.MeResponse;
 import org.backend.domain.auth.dto.response.TokenResponse;
 import org.backend.domain.auth.entity.RefreshToken;
-import org.backend.domain.admin.repository.AdminRepository;
 import org.backend.domain.auth.repository.RefreshTokenRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,11 @@ public class AuthService {
         Admin admin = adminRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
 
+        // 비활성 계정 차단
+        if (admin.getStatus() != AdminStatus.ACTIVE) {
+            throw new IllegalArgumentException("비활성화된 계정입니다.");
+        }
+
         if (Boolean.TRUE.equals(admin.getGoogle())) {
             throw new IllegalArgumentException("구글 로그인 계정입니다. 구글 로그인을 이용하세요.");
         }
@@ -50,7 +56,7 @@ public class AuthService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-        String role = admin.getRole().name(); // "ADMIN"
+        String role = admin.getRole().name();
         String accessToken = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), role);
         String refreshToken = jwtProvider.generateRefreshToken(admin.getId());
 
@@ -89,7 +95,13 @@ public class AuthService {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new IllegalArgumentException("관리자 정보를 찾을 수 없습니다."));
 
-        String role = admin.getRole().name(); // "ADMIN"
+        // 비활성 계정이면 refresh로 재발급 못하게 차단
+        if (admin.getStatus() != AdminStatus.ACTIVE) {
+            refreshTokenRepository.deleteByAdminId(adminId); // 깔끔하게 RT도 정리(선택이지만 추천)
+            throw new IllegalArgumentException("비활성화된 계정입니다.");
+        }
+
+        String role = admin.getRole().name();
         String newAccess = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), role);
         String newRefresh = jwtProvider.generateRefreshToken(admin.getId());
 

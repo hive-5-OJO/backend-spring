@@ -3,7 +3,9 @@ package org.backend.domain.admin.controller;
 import lombok.RequiredArgsConstructor;
 import org.backend.common.CommonResponse;
 import org.backend.domain.admin.dto.request.AdminRoleUpdateRequest;
+import org.backend.domain.admin.dto.request.AdminStatusUpdateRequest;
 import org.backend.domain.admin.dto.response.AdminRoleUpdateResponse;
+import org.backend.domain.admin.dto.response.AdminStatusUpdateResponse;
 import org.backend.domain.admin.dto.response.AdminSummaryDto;
 import org.backend.domain.admin.entity.AdminStatus;
 import org.backend.domain.admin.service.AdminService;
@@ -43,5 +45,13 @@ public class AdminController {
         AdminRoleUpdateResponse result = adminService.updateRole(adminId, request.role());
         return ResponseEntity.ok(CommonResponse.success(result, "관리자 권한 변경 성공"));
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{adminId}/status")
+    public ResponseEntity<CommonResponse<AdminStatusUpdateResponse>> updateAdminStatus(
+            @PathVariable Long adminId,
+            @RequestBody AdminStatusUpdateRequest request
+    ) {
+        AdminStatusUpdateResponse result = adminService.updateStatus(adminId, request.status());
+        return ResponseEntity.ok(CommonResponse.success(result, "관리자 계정 상태 변경 성공"));
+    }
 }
