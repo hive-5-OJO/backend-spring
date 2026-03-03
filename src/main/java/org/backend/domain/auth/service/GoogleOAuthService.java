@@ -2,12 +2,13 @@ package org.backend.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import org.backend.config.security.JwtProvider;
-import org.backend.domain.auth.dto.response.LoginResponse;
 import org.backend.domain.admin.entity.Admin;
+import org.backend.domain.admin.entity.AdminStatus;
+import org.backend.domain.admin.repository.AdminRepository;
+import org.backend.domain.auth.dto.response.LoginResponse;
 import org.backend.domain.auth.entity.RefreshToken;
 import org.backend.domain.auth.oauth.GoogleOAuthClient;
 import org.backend.domain.auth.oauth.dto.GoogleUserInfo;
-import org.backend.domain.admin.repository.AdminRepository;
 import org.backend.domain.auth.repository.RefreshTokenRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,11 +28,16 @@ public class GoogleOAuthService {
     public LoginResponse loginWithCode(String code) {
         GoogleUserInfo userInfo = googleOAuthClient.getUserInfoByCode(code);
 
-        // 정책 : 없으면 자동 등록 후 통과
         whitelistService.validateAndAutoRegister(userInfo.email());
 
         Admin admin = adminRepository.findByEmail(userInfo.email())
                 .orElseGet(() -> adminRepository.save(Admin.createGoogleUser(userInfo.name(), userInfo.email())));
+
+        // 비활성 계정 차단
+        if (admin.getStatus() != AdminStatus.ACTIVE) {
+            refreshTokenRepository.deleteByAdminId(admin.getId()); // 혹시 남은 RT 정리(선택이지만 추천)
+            throw new IllegalArgumentException("비활성화된 계정입니다.");
+        }
 
         String accessToken = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), admin.getRole().name());
         String refreshToken = jwtProvider.generateRefreshToken(admin.getId());
