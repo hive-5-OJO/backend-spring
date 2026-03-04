@@ -6,7 +6,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface CustomerSummaryRepository extends JpaRepository<Member, Long> {
@@ -68,4 +71,32 @@ public interface CustomerSummaryRepository extends JpaRepository<Member, Long> {
             countQuery = "SELECT COUNT(*) FROM member",
             nativeQuery = true)
     Page<CustomerSummaryProjection> findCustomerSummary(Pageable pageable);
+
+    //고객 검색
+    @Query(value = """
+    SELECT
+        m.member_id AS memberId,
+        m.name AS name,
+        m.created_at AS createdAt,
+        fc.top_consult_category AS topConsultCategory,
+        fc.last_30d_consult_count AS last30dConsultCount,
+        a.type AS vipType,
+        (
+            SELECT p.product_name
+            FROM subscription_period sp
+            JOIN product p ON sp.product_id = p.product_id
+            WHERE sp.member_id = m.member_id
+              AND sp.status = 'ACTIVE'
+            ORDER BY sp.started_at DESC
+            LIMIT 1
+        ) AS productName
+    FROM member m
+    LEFT JOIN feature_consultation fc ON fc.member_id = m.member_id
+    LEFT JOIN analysis a ON a.member_id = m.member_id
+    WHERE m.member_id IN (:memberIds)
+    """,
+            nativeQuery = true)
+    List<CustomerSummaryProjection> findCustomerSummaryByMemberIds(
+            @Param("memberIds") List<Long> memberIds
+    );
 }
