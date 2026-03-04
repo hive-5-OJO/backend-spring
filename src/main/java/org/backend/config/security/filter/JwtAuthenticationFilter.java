@@ -6,6 +6,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.backend.config.security.JwtProvider;
+import org.backend.domain.admin.entity.Admin;
+import org.backend.domain.admin.entity.AdminStatus;
+import org.backend.domain.admin.repository.AdminRepository;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,9 +22,11 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
+    private final AdminRepository adminRepository;
 
-    public JwtAuthenticationFilter(JwtProvider jwtProvider) {
+    public JwtAuthenticationFilter(JwtProvider jwtProvider, AdminRepository adminRepository) {
         this.jwtProvider = jwtProvider;
+        this.adminRepository = adminRepository;
     }
 
     @Override
@@ -33,21 +38,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        if (StringUtils.hasText(token) && jwtProvider.validate(token)) {
+        if (StringUtils.hasText(token) && jwtProvider.validate(token) && jwtProvider.isAccessToken(token)) {
             Claims claims = jwtProvider.getClaims(token);
 
-            String adminId = claims.getSubject();
+            String adminIdStr = claims.getSubject();
             String role = (String) claims.get("role");
 
-            // principal은 보통 username/email을 넣지만, 여기선 adminId로 둠(원하면 email로 바꿔도 됨)
-            List<SimpleGrantedAuthority> authorities =
-                    role == null ? List.of() : List.of(new SimpleGrantedAuthority(role));
+            // ✅ DB status 체크: 비활성이면 인증 세팅하지 않음 (즉시 차단)
+            if (StringUtils.hasText(adminIdStr)) {
+                Long adminId = Long.parseLong(adminIdStr);
 
-            Authentication auth = new UsernamePasswordAuthenticationToken(adminId, null, authorities);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+                Admin admin = adminRepository.findById(adminId).orElse(null);
+                if (admin != null && admin.getStatus() == AdminStatus.ACTIVE) {
+                    List<SimpleGrantedAuthority> authorities = toAuthorities(role);
+                    Authentication auth = new UsernamePasswordAuthenticationToken(adminIdStr, null, authorities);
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private List<SimpleGrantedAuthority> toAuthorities(String role) {
+        if (!StringUtils.hasText(role)) return List.of();
+        String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+        return List.of(new SimpleGrantedAuthority(authority));
     }
 
     private String resolveToken(HttpServletRequest request) {

@@ -16,6 +16,7 @@ public class AuthWhitelistEmail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "auth_whitelist_emails_id")
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -24,4 +25,12 @@ public class AuthWhitelistEmail {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    private AuthWhitelistEmail(String email) {
+        this.email = email;
+    }
+
+    public static AuthWhitelistEmail create(String email) {
+        return new AuthWhitelistEmail(email);
+    }
 }

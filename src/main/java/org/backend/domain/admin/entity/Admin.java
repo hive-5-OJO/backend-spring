@@ -1,4 +1,4 @@
-package org.backend.domain.auth.entity;
+package org.backend.domain.admin.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 import java.time.LocalDateTime;
 
@@ -32,23 +34,22 @@ public class Admin {
     @Column(nullable = false, length = 255)
     private String email;
 
-    // 일반 로그인 계정은 password 필요, 구글 로그인 계정은 null 허용
     @Column(length = 255)
     private String password;
 
     @Column(nullable = false, length = 15)
     private String phone;
 
-    // google 로그인 계정 여부
     @Column(nullable = false)
     private Boolean google;
 
-    @Column(length = 20)
-    private String role;
-
-    // 재직/퇴사 같은 상태값
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String status;
+    private AdminRole role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private AdminStatus status;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -59,7 +60,8 @@ public class Admin {
     private LocalDateTime updatedAt;
 
     @Builder
-    private Admin(String name, String email, String password, String phone, Boolean google, String role, String status) {
+    private Admin(String name, String email, String password, String phone,
+                  Boolean google, AdminRole role, AdminStatus status) {
         this.name = name;
         this.email = email;
         this.password = password;
@@ -76,8 +78,8 @@ public class Admin {
                 .password(null)
                 .phone("000-0000-0000")
                 .google(true)
-                .role("ROLE_ADMIN")
-                .status("ACTIVE")
+                .role(AdminRole.GUEST)
+                .status(AdminStatus.ACTIVE)
                 .build();
     }
 
@@ -85,11 +87,11 @@ public class Admin {
         this.password = encodedPassword;
     }
 
-    public void changeRole(String role) {
+    public void changeRole(AdminRole role) {
         this.role = role;
     }
 
-    public void changeStatus(String status) {
+    public void changeStatus(AdminStatus status) {
         this.status = status;
     }
 }

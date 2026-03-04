@@ -16,6 +16,7 @@ public class RefreshToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "refresh_tokens_id")
     private Long id;
 
     @Column(name = "admin_id", nullable = false)

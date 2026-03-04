@@ -2,12 +2,13 @@ package org.backend.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import org.backend.config.security.JwtProvider;
+import org.backend.domain.admin.entity.Admin;
+import org.backend.domain.admin.entity.AdminStatus;
+import org.backend.domain.admin.repository.AdminRepository;
 import org.backend.domain.auth.dto.response.LoginResponse;
-import org.backend.domain.auth.entity.Admin;
 import org.backend.domain.auth.entity.RefreshToken;
 import org.backend.domain.auth.oauth.GoogleOAuthClient;
 import org.backend.domain.auth.oauth.dto.GoogleUserInfo;
-import org.backend.domain.auth.repository.AdminRepository;
 import org.backend.domain.auth.repository.RefreshTokenRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,17 +28,23 @@ public class GoogleOAuthService {
     public LoginResponse loginWithCode(String code) {
         GoogleUserInfo userInfo = googleOAuthClient.getUserInfoByCode(code);
 
-        whitelistService.validate(userInfo.email());
+        whitelistService.validateAndAutoRegister(userInfo.email());
 
         Admin admin = adminRepository.findByEmail(userInfo.email())
                 .orElseGet(() -> adminRepository.save(Admin.createGoogleUser(userInfo.name(), userInfo.email())));
 
-        String accessToken = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), admin.getRole());
+        // 비활성 계정 차단
+        if (admin.getStatus() != AdminStatus.ACTIVE) {
+            refreshTokenRepository.deleteByAdminId(admin.getId()); // 혹시 남은 RT 정리(선택이지만 추천)
+            throw new IllegalArgumentException("비활성화된 계정입니다.");
+        }
+
+        String accessToken = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), admin.getRole().name());
         String refreshToken = jwtProvider.generateRefreshToken(admin.getId());
 
         upsertRefreshToken(admin.getId(), refreshToken);
 
-        return new LoginResponse(accessToken, refreshToken, admin.getId(), admin.getEmail(), admin.getRole());
+        return new LoginResponse(accessToken, refreshToken, admin.getId(), admin.getEmail(), admin.getRole().name());
     }
 
     private void upsertRefreshToken(Long adminId, String token) {
