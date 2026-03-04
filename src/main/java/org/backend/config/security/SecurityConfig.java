@@ -1,3 +1,4 @@
+// backend-spring/src/main/java/org/backend/config/security/SecurityConfig.java
 package org.backend.config.security;
 
 import org.backend.config.security.filter.JwtAuthenticationFilter;
@@ -44,10 +45,17 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtProvider, adminRepository);
 
         http
+                // REST API 기준: CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
+
+                // 기본 폼 로그인/Basic 로그인 비활성화
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
+
+                // 세션 사용 안함(JWT)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 401/403 예외를 ApiError JSON으로 내려주기
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(securityExceptionHandler)
                         .accessDeniedHandler(securityExceptionHandler)
