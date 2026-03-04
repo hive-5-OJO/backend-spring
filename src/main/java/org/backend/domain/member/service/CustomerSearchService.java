@@ -6,9 +6,7 @@ import org.backend.domain.analysis.repository.FeatureConsultationRepository;
 import org.backend.domain.member.document.MemberSearchDocument;
 import org.backend.domain.member.dto.ConsultStatProjection;
 import org.backend.domain.member.dto.CustomerSummaryProjection;
-import org.backend.domain.member.dto.search.CustomerSearchItem;
 import org.backend.domain.member.dto.search.CustomerSearchSummaryResponse;
-import org.backend.domain.member.dto.search.MemberStatusLabel;
 import org.backend.domain.member.repository.MemberSearchRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,43 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-//@Service
-//@RequiredArgsConstructor
-//public class CustomerSearchService {
-//
-//    private final MemberSearchRepository repository;
-//
-//    public Page<CustomerSearchItem> search(String keyword, int page, int size) {
-//
-//        Pageable pageable = PageRequest.of(page, size);
-//
-//        if (keyword == null || keyword.isBlank()) {
-//            return Page.empty(pageable);
-//        }
-//
-//        Page<MemberSearchDocument> result =
-//                repository.searchByKeyword(keyword, pageable);
-//
-//        return result.map(doc -> new CustomerSearchItem(
-//                doc.getMemberId(),
-//                doc.getName(),
-//                maskPhone(doc.getPhone()),
-//                maskEmail(doc.getEmail()),
-//                doc.getCreatedAt(),
-//                doc.getStatus(),
-//                MemberStatusLabel.labelOf(doc.getStatus())
-//        ));
-//    }
-//
-//    private String maskPhone(String phone) {
-//        if (phone == null) return null;
-//        return phone.replaceAll("(\\d{3})-(\\d{4})-(\\d{4})", "$1-xxxx-$3");
-//    }
-//
-//    private String maskEmail(String email) {
-//        return email;
-//    }
-//}
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
