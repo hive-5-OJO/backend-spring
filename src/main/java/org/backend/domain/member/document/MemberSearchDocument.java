@@ -14,7 +14,7 @@ public class MemberSearchDocument {
     @Id
     private Long memberId;
 
-    @Field(type = FieldType.Text, analyzer = "korean") // 한글 검색
+    @Field(type = FieldType.Text, analyzer = "nori") // 한글 검색
     private String name;
 
     @Field(type = FieldType.Keyword)
