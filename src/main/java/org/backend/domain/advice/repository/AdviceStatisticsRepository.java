@@ -13,16 +13,17 @@ public interface AdviceStatisticsRepository extends JpaRepository<Advice, Long> 
 
     @Query(value = """
    SELECT
-     c.category_name AS category,
-     COUNT(*) AS cnt,
+     c.category_id   AS categoryId,
+     c.category_name AS categoryName,
+     COUNT(*)        AS count,
      SUM(COUNT(*)) OVER() AS totalCount,
      ROUND((COUNT(*) / SUM(COUNT(*)) OVER()) * 100, 2) AS ratio
    FROM advice a
    JOIN categories c ON c.category_id = a.category_id
    WHERE a.created_at >= :startDt
      AND a.created_at <  :endDt
-   GROUP BY c.category_name
-   ORDER BY cnt DESC
+   GROUP BY c.category_id, c.category_name
+   ORDER BY count DESC
    """, nativeQuery = true)
     List<AdviceCategoryRatioRow> findCategoryRatio(
             @Param("startDt") LocalDateTime startDt,
