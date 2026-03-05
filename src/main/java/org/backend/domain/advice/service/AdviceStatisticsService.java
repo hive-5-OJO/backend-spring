@@ -2,6 +2,7 @@ package org.backend.domain.advice.service;
 
 import org.backend.domain.advice.dto.AdviceCategoryRatioItem;
 import org.backend.domain.advice.dto.AdviceCategoryRatioResponse;
+import org.backend.domain.advice.dto.AdviceCategoryRatioRow;
 import org.backend.domain.advice.repository.AdviceStatisticsRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,30 +14,36 @@ import java.util.List;
 @Service
 public class AdviceStatisticsService {
 
-    private final AdviceStatisticsRepository adviceStatisticsRepository;
+    private final AdviceStatisticsRepository repo;
 
     public AdviceStatisticsService(AdviceStatisticsRepository adviceStatisticsRepository) {
-        this.adviceStatisticsRepository = adviceStatisticsRepository;
+        this.repo = adviceStatisticsRepository;
     }
 
     @Transactional(readOnly = true)
     public AdviceCategoryRatioResponse getCategoryRatios(LocalDate from, LocalDate to) {
-        // startInclusive
-        LocalDateTime fromDt = (from == null) ? null : from.atStartOfDay();
+        LocalDate start = (from != null) ? from : (to != null ? to : LocalDate.now());
+        LocalDate end = (to != null) ? to : start;
 
-        // endExclusive (to 날짜 포함을 위해 다음날 0시로)
-        LocalDateTime toExclusive = (to == null) ? null : to.plusDays(1).atStartOfDay();
+        if (start.isAfter(end)) {
+            LocalDate tmp = start;
+            start = end;
+            end = tmp;
+        }
 
-        long total = adviceStatisticsRepository.totalCount(fromDt, toExclusive);
-        List<AdviceCategoryRatioItem> raw = adviceStatisticsRepository.countByCategory(fromDt, toExclusive);
+        LocalDateTime startDt = start.atStartOfDay();
+        LocalDateTime endDt = end.plusDays(1).atStartOfDay(); // [start, end)
 
-        // ratio 계산
-        List<AdviceCategoryRatioItem> items = raw.stream()
-                .map(i -> new AdviceCategoryRatioItem(
-                        i.categoryId(),
-                        i.categoryName(),
-                        i.count(),
-                        total == 0 ? 0.0 : (i.count() * 100.0 / total)
+        List<AdviceCategoryRatioRow> rows = repo.findCategoryRatio(startDt, endDt);
+
+        long total = rows.isEmpty() ? 0L : rows.get(0).getTotalCount();
+
+        List<AdviceCategoryRatioItem> items = rows.stream()
+                .map(r -> new AdviceCategoryRatioItem(
+                        r.getCategoryId(),
+                        r.getCategoryName(),
+                        r.getCount(),
+                        r.getRatio()
                 ))
                 .toList();
 
