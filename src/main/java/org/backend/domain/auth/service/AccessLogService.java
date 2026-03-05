@@ -1,8 +1,13 @@
 package org.backend.domain.auth.service;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.backend.domain.auth.dto.response.AccessLogSummaryDto;
 import org.backend.domain.auth.entity.AccessLog;
 import org.backend.domain.auth.repository.AccessLogRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,5 +57,14 @@ public class AccessLogService {
         if (xrip != null && !xrip.isBlank()) return xrip.trim();
 
         return request.getRemoteAddr();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AccessLogSummaryDto> getAccessLogs(Integer page, Integer size) {
+        int p = (page == null) ? 0 : Math.max(page, 0);
+        int s = (size == null) ? 20 : Math.min(Math.max(size, 1), 100);
+
+        Pageable pageable = PageRequest.of(p, s, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return accessLogRepository.findAll(pageable).map(AccessLogSummaryDto::from);
     }
 }
