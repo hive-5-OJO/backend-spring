@@ -1,6 +1,10 @@
 package org.backend.domain.batch.job.memberfeature;
 
 import lombok.RequiredArgsConstructor;
+import org.backend.domain.batch.entity.ConsultationBasics;
+import org.backend.domain.batch.entity.FeatureUsage;
+import org.backend.domain.batch.entity.Lifecycle;
+import org.backend.domain.batch.entity.Monetary;
 import org.backend.domain.batch.job.memberfeature.reader.MemberReaderConfig;
 import org.backend.domain.member.entity.Member;
 import org.springframework.batch.core.Job;
@@ -9,7 +13,7 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -24,19 +28,24 @@ public class MemberFeatureJobConfig {
     private final PlatformTransactionManager transactionManager;
     private final MemberReaderConfig memberReaderConfig;
 
-
-     // TaskExecutor 설정
+    /**
+     * TaskExecutor 설정 (멀티스레드 처리용)
+     */
     @Bean
     public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);    // 기본 스레드 4개
-        executor.setMaxPoolSize(8);     // 최대 8개까지 확장
-        executor.setQueueCapacity(500); // 대기열 설정
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(8);
+        executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("batch-thread-");
         executor.initialize();
         return executor;
     }
 
+    /**
+     * Job 정의
+     * Step들을 파라미터로 주입받아 순서대로 실행합니다.
+     */
     @Bean
     public Job memberFeatureJob(Step consultationStep,
                                 Step lifecycleStep,
@@ -50,50 +59,70 @@ public class MemberFeatureJobConfig {
                 .build();
     }
 
+    /**
+     * 1. 상담 특성 Step
+     */
     @Bean
-    public Step consultationStep(ItemProcessor<Member, ?> consultationProcessor,
-                                 ItemWriter<Object> memberWriter) {
+    public Step consultationStep(
+            ItemProcessor<Member, ConsultationBasics> consultationProcessor,
+            JpaItemWriter<ConsultationBasics> consultationWriter) {
+
         return new StepBuilder("consultationStep", jobRepository)
-                .<Member, Object>chunk(1000, transactionManager)
+                .<Member, ConsultationBasics>chunk(1000, transactionManager)
                 .reader(memberReaderConfig.memberReader())
-                .processor((ItemProcessor<? super Member, ?>) consultationProcessor)
-                .writer(memberWriter)
+                .processor(consultationProcessor)
+                .writer(consultationWriter)
                 .taskExecutor(taskExecutor())
                 .build();
     }
 
+    /**
+     * 2. Lifecycle Step
+     */
     @Bean
-    public Step lifecycleStep(ItemProcessor<Member, ?> memberLifecycleProcessor,
-                              ItemWriter<Object> memberWriter) {
+    public Step lifecycleStep(
+            ItemProcessor<Member, Lifecycle> memberLifecycleProcessor,
+            JpaItemWriter<Lifecycle> lifecycleWriter) {
+
         return new StepBuilder("lifecycleStep", jobRepository)
-                .<Member, Object>chunk(1000, transactionManager)
+                .<Member, Lifecycle>chunk(1000, transactionManager)
                 .reader(memberReaderConfig.memberReader())
-                .processor((ItemProcessor<? super Member, ?>) memberLifecycleProcessor)
-                .writer(memberWriter)
+                .processor(memberLifecycleProcessor)
+                .writer(lifecycleWriter)
                 .taskExecutor(taskExecutor())
                 .build();
     }
 
+    /**
+     * 3. Monetary Step
+     */
     @Bean
-    public Step monetaryStep(ItemProcessor<Member, ?> monetaryProcessor,
-                             ItemWriter<Object> memberWriter) {
+    public Step monetaryStep(
+            ItemProcessor<Member, Monetary> monetaryProcessor,
+            JpaItemWriter<Monetary> monetaryWriter) {
+
         return new StepBuilder("monetaryStep", jobRepository)
-                .<Member, Object>chunk(1000, transactionManager)
+                .<Member, Monetary>chunk(1000, transactionManager)
                 .reader(memberReaderConfig.memberReader())
-                .processor((ItemProcessor<? super Member, ?>) monetaryProcessor)
-                .writer(memberWriter)
+                .processor(monetaryProcessor)
+                .writer(monetaryWriter)
                 .taskExecutor(taskExecutor())
                 .build();
     }
 
+    /**
+     * 4. Usage Step
+     */
     @Bean
-    public Step usageStep(ItemProcessor<Member, ?> usageProcessor,
-                          ItemWriter<Object> memberWriter) {
+    public Step usageStep(
+            ItemProcessor<Member, FeatureUsage> usageProcessor,
+            JpaItemWriter<FeatureUsage> usageWriter) {
+
         return new StepBuilder("usageStep", jobRepository)
-                .<Member, Object>chunk(1000, transactionManager)
+                .<Member, FeatureUsage>chunk(1000, transactionManager)
                 .reader(memberReaderConfig.memberReader())
-                .processor((ItemProcessor<? super Member, ?>) usageProcessor)
-                .writer(memberWriter)
+                .processor(usageProcessor)
+                .writer(usageWriter)
                 .taskExecutor(taskExecutor())
                 .build();
     }
