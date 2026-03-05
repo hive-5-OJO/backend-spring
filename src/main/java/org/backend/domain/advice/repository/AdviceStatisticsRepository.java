@@ -12,18 +12,18 @@ import java.util.List;
 public interface AdviceStatisticsRepository extends JpaRepository<Advice, Long> {
 
     @Query(value = """
-           SELECT
-                 c.category_name AS category,
-                 COUNT(*) AS cnt,
-                 SUM(COUNT(*)) OVER() AS totalCount,
-                 ROUND((COUNT(*) / SUM(COUNT(*)) OVER()) * 100, 2) AS ratio
-               FROM advice a
-               JOIN categories c ON c.category_id = a.category_id
-               WHERE a.created_at >= :from
-                 AND a.created_at <  :to
-               GROUP BY c.category_name
-               ORDER BY cnt DESC;
-        """, nativeQuery = true)
+   SELECT
+     c.category_name AS category,
+     COUNT(*) AS cnt,
+     SUM(COUNT(*)) OVER() AS totalCount,
+     ROUND((COUNT(*) / SUM(COUNT(*)) OVER()) * 100, 2) AS ratio
+   FROM advice a
+   JOIN categories c ON c.category_id = a.category_id
+   WHERE a.created_at >= :startDt
+     AND a.created_at <  :endDt
+   GROUP BY c.category_name
+   ORDER BY cnt DESC
+   """, nativeQuery = true)
     List<AdviceCategoryRatioRow> findCategoryRatio(
             @Param("startDt") LocalDateTime startDt,
             @Param("endDt") LocalDateTime endDt

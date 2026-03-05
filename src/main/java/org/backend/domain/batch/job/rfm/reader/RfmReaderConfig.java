@@ -4,8 +4,6 @@ import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.backend.domain.batch.entity.Monetary;
 import org.springframework.batch.core.configuration.annotation.StepScope;
-//import org.springframework.batch.infrastructure.item.database.JpaPagingItemReader;
-//import org.springframework.batch.infrastructure.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.context.annotation.Bean;

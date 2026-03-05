@@ -6,7 +6,6 @@ import org.backend.common.page.PageResponse;
 import org.backend.domain.member.dto.CustomerDetailResponse;
 import org.backend.domain.member.dto.CustomerSummaryResponse;
 import org.backend.domain.member.service.CustomerService;
-import org.backend.domain.member.service.CustomerServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
