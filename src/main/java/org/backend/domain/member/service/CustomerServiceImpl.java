@@ -9,6 +9,8 @@ import org.backend.domain.analysis.repository.CustomerSummaryRepository;
 import org.backend.domain.analysis.repository.FeatureConsultationRepository;
 import org.backend.domain.member.dto.ConsultStatProjection;
 import org.backend.domain.member.dto.CustomerDetailResponse;
+import org.backend.domain.member.dto.CustomerFilterRequest;
+import org.backend.domain.member.dto.CustomerFilterResponse;
 import org.backend.domain.member.dto.CustomerSummaryProjection;
 import org.backend.domain.member.dto.CustomerSummaryResponse;
 import org.backend.domain.member.entity.Member;
@@ -57,22 +59,18 @@ public class CustomerServiceImpl implements CustomerService {
         Page<CustomerSummaryProjection> result = summaryRepository.findCustomerSummary(pageable);
 
         // 매핑
-        Page<CustomerSummaryResponse> mapped = result.map(p ->
-                new CustomerSummaryResponse(
-                        p.getMemberId(),
-                        p.getName(),
-                        p.getProductName(),
-                        p.getCreatedAt().toLocalDate() + " ~ 현재",
-                        p.getTopConsultCategory(),
-                        calculateFrequency(p.getLast30dConsultCount(), avg, std),
-                        convertVipType(p.getVipType())
-                )
-        );
+        Page<CustomerSummaryResponse> mapped = result.map(p -> new CustomerSummaryResponse(
+                p.getMemberId(),
+                p.getName(),
+                p.getProductName(),
+                p.getCreatedAt().toLocalDate() + " ~ 현재",
+                p.getTopConsultCategory(),
+                calculateFrequency(p.getLast30dConsultCount(), avg, std),
+                convertVipType(p.getVipType())));
 
         return CommonResponse.success(
                 PageResponse.from(mapped),
-                "고객 목록 조회"
-        );
+                "고객 목록 조회");
     }
 
     // Z-score 기반 상담 빈도 계산 (통걔 로직)
@@ -84,8 +82,10 @@ public class CustomerServiceImpl implements CustomerService {
 
         double z = (count - avg) / std;
 
-        if (z >= 1) return "HIGH";
-        if (z <= -1) return "LOW";
+        if (z >= 1)
+            return "HIGH";
+        if (z <= -1)
+            return "LOW";
 
         return "MEDIUM";
     }
@@ -93,7 +93,8 @@ public class CustomerServiceImpl implements CustomerService {
     // VIP 타입 변환 (UI 로직)
     private String convertVipType(String type) {
 
-        if (type == null) return "일반 고객";
+        if (type == null)
+            return "일반 고객";
 
         return switch (type) {
             case "VIP" -> "VIP";
@@ -103,5 +104,13 @@ public class CustomerServiceImpl implements CustomerService {
             case "LOST" -> "이탈 고객";
             default -> "일반 고객";
         };
+    }
+
+    // 고객 필터링
+    @Override
+    public CommonResponse<PageResponse<CustomerFilterResponse>> getFilteredCustomers(CustomerFilterRequest request,
+            Pageable pageable) {
+        Page<CustomerFilterResponse> result = memberRepository.findFilteredCustomers(request, pageable);
+        return CommonResponse.success(PageResponse.from(result), "필터링된 고객 목록 조회");
     }
 }
