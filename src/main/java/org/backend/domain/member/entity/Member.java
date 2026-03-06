@@ -1,7 +1,6 @@
 package org.backend.domain.member.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -44,5 +43,8 @@ public class Member {
 
     @Column(nullable = false, length = 20)
     private String status;
+
+    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY)
+    private MemberConsent consent;
 
 }

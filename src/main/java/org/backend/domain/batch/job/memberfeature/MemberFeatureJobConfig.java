@@ -28,9 +28,8 @@ public class MemberFeatureJobConfig {
     private final PlatformTransactionManager transactionManager;
     private final MemberReaderConfig memberReaderConfig;
 
-    /**
-     * TaskExecutor 설정 (멀티스레드 처리용)
-     */
+
+     // TaskExecutor 설정 (멀티스레드 처리용)
     @Bean
     public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -42,10 +41,7 @@ public class MemberFeatureJobConfig {
         return executor;
     }
 
-    /**
-     * Job 정의
-     * Step들을 파라미터로 주입받아 순서대로 실행합니다.
-     */
+
     @Bean
     public Job memberFeatureJob(Step consultationStep,
                                 Step lifecycleStep,
@@ -59,9 +55,7 @@ public class MemberFeatureJobConfig {
                 .build();
     }
 
-    /**
-     * 1. 상담 특성 Step
-     */
+
     @Bean
     public Step consultationStep(
             ItemProcessor<Member, ConsultationBasics> consultationProcessor,
@@ -76,9 +70,7 @@ public class MemberFeatureJobConfig {
                 .build();
     }
 
-    /**
-     * 2. Lifecycle Step
-     */
+
     @Bean
     public Step lifecycleStep(
             ItemProcessor<Member, Lifecycle> memberLifecycleProcessor,
@@ -93,9 +85,6 @@ public class MemberFeatureJobConfig {
                 .build();
     }
 
-    /**
-     * 3. Monetary Step
-     */
     @Bean
     public Step monetaryStep(
             ItemProcessor<Member, Monetary> monetaryProcessor,
@@ -110,9 +99,6 @@ public class MemberFeatureJobConfig {
                 .build();
     }
 
-    /**
-     * 4. Usage Step
-     */
     @Bean
     public Step usageStep(
             ItemProcessor<Member, FeatureUsage> usageProcessor,

@@ -1,7 +1,10 @@
 package org.backend.domain.analysis.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.backend.domain.member.entity.Member;
 
 import java.time.LocalDateTime;
@@ -9,14 +12,16 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "rfm")
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Rfm {
     @Id
     @Column(name = "member_id")
     private Long memberId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "member_id", nullable = false, insertable = false, updatable = false)
     private Member member;
 
     private LocalDateTime recency;
