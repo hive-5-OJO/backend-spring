@@ -14,6 +14,7 @@ public class MemberSearchDocument {
     @Id
     private Long memberId;
 
+    // korean -> nori 수정
     @Field(type = FieldType.Text, analyzer = "nori") // 한글 검색
     private String name;
 
