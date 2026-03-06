@@ -20,8 +20,8 @@ public class MemberFeatureScheduler {
     private final Job memberFeatureJob;
 
     // 매일 새벽 2시에 실행 (Cron 표현식: 초 분 시 일 월 요일)
-//    @Scheduled(cron = "0 0 2 * * *")
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 2 * * *")
+//    @Scheduled(cron = "0 * * * * *")
     public void runMemberFeatureJob() {
         try {
             // 어제 날짜를 기준일로 설정 (데이터 정합성 측면에서 유리)

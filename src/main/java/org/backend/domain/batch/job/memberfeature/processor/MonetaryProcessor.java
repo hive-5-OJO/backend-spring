@@ -58,7 +58,7 @@ public class MonetaryProcessor implements ItemProcessor<Member, Monetary> {
                 .getResultList();
         double avgMonthlyBill6m = (!sixMonthAvgList.isEmpty() && sixMonthAvgList.get(0) != null) ? sixMonthAvgList.get(0) : 0.0;
 
-        // 3. 마지막 결제 정보
+        // 3. 마지막 결제 정보 (IndexOutOfBoundsException 방어 코드 적용)
         List<Object[]> lastPaymentList = em.createQuery(
                         "SELECT p.paidAmount, p.paidAt FROM Payment p JOIN p.invoice i " +
                                 "WHERE i.member.id = :memberId AND p.paidAt <= :targetLimit ORDER BY p.paidAt DESC", Object[].class)
@@ -69,9 +69,15 @@ public class MonetaryProcessor implements ItemProcessor<Member, Monetary> {
 
         long lastAmount = 0L;
         LocalDate lastDate = null;
-        if (!lastPaymentList.isEmpty()) {
-            lastAmount = (lastPaymentList.get(0)[0] != null) ? ((Number) lastPaymentList.get(0)[0]).longValue() : 0L;
-            lastDate = (lastPaymentList.get(0)[1] != null) ? ((LocalDateTime) lastPaymentList.get(0)[1]).toLocalDate() : null;
+
+        // 리스트가 비어있지 않은지 반드시 확인 후 접근
+        if (lastPaymentList != null && !lastPaymentList.isEmpty()) {
+            Object[] row = lastPaymentList.get(0);
+            lastAmount = (row[0] != null) ? ((Number) row[0]).longValue() : 0L;
+            // zeroDateTimeBehavior=convertToNull 설정 시 0000-00-00은 null로 반환됨
+            if (row[1] != null) {
+                lastDate = ((LocalDateTime) row[1]).toLocalDate();
+            }
         }
 
         // 4. 연체 횟수
@@ -82,25 +88,24 @@ public class MonetaryProcessor implements ItemProcessor<Member, Monetary> {
                 .getResultList();
         int delayCount = (!delayCountList.isEmpty() && delayCountList.get(0) != null) ? delayCountList.get(0).intValue() : 0;
 
-        // 5. [수정] 구매 주기 계산: 엔티티 연관관계 없이 직접 조인 쿼리 수행
+        // 5. 구매 주기 계산 (오류 방지를 위한 try-catch 및 null 체크 강화)
         int purchaseCycle = 0;
         try {
-            // InvoiceDetail(id)을 직접 명시하여 조인 오류 해결
             List<Object[]> addonPaymentStats = em.createQuery(
                             "SELECT COUNT(DISTINCT p.id), MIN(p.paidAt), MAX(p.paidAt) " +
                                     "FROM Payment p " +
-                                    "JOIN p.invoice i, InvoiceDetail id " + // 연관관계 대신 직접 테이블 나열 (Cross Join + Where)
+                                    "JOIN p.invoice i, InvoiceDetail id " +
                                     "JOIN id.product pr " +
                                     "WHERE i.member.id = :memberId " +
-                                    "AND id.invoice = i " + // 여기서 직접 연결
+                                    "AND id.invoice = i " +
                                     "AND pr.productCategory != 'BASE' " +
                                     "AND p.paidAt <= :targetLimit", Object[].class)
                     .setParameter("memberId", memberId)
                     .setParameter("targetLimit", targetLimit)
                     .getResultList();
 
-            if (!addonPaymentStats.isEmpty() && addonPaymentStats.get(0)[0] != null) {
-                long payCount = (long) addonPaymentStats.get(0)[0];
+            if (addonPaymentStats != null && !addonPaymentStats.isEmpty() && addonPaymentStats.get(0)[0] != null) {
+                long payCount = ((Number) addonPaymentStats.get(0)[0]).longValue();
                 LocalDateTime minPaid = (LocalDateTime) addonPaymentStats.get(0)[1];
                 LocalDateTime maxPaid = (LocalDateTime) addonPaymentStats.get(0)[2];
 
@@ -110,17 +115,18 @@ public class MonetaryProcessor implements ItemProcessor<Member, Monetary> {
                 }
             }
         } catch (Exception e) {
-            purchaseCycle = 0; // 에러 시 건너뜀
+            purchaseCycle = 0;
         }
 
         // 6. 최근 6개월 결제 건수
-        Long payCount6m = em.createQuery(
+        List<Long> payCount6mList = em.createQuery(
                         "SELECT COUNT(p.id) FROM Payment p JOIN p.invoice i " +
                                 "WHERE i.member.id = :memberId AND p.paidAt BETWEEN :sixMonthsAgo AND :targetLimit", Long.class)
                 .setParameter("memberId", memberId)
                 .setParameter("sixMonthsAgo", sixMonthsAgo)
                 .setParameter("targetLimit", targetLimit)
-                .getSingleResult();
+                .getResultList();
+        long payCount6m = (!payCount6mList.isEmpty() && payCount6mList.get(0) != null) ? payCount6mList.get(0) : 0L;
 
         // 7. 당월/전월 매출
         String currentMonthStr = targetDate.getYear() + String.format("%02d", targetDate.getMonthValue());
@@ -141,7 +147,7 @@ public class MonetaryProcessor implements ItemProcessor<Member, Monetary> {
                 .lastPaymentAmount(lastAmount)
                 .avgMonthlyBill((float)avgMonthlyBill6m)
                 .lastPaymentDate(lastDate)
-                .paymentCount6m(payCount6m != null ? payCount6m.intValue() : 0)
+                .paymentCount6m((int)payCount6m)
                 .monthlyRevenue(monthlyRevenue)
                 .paymentDelayCount(delayCount)
                 .prevMonthlyRevenue(prevMonthlyRevenue)
