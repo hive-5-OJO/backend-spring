@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public interface AdviceStatisticsRepository extends JpaRepository<Advice, Long> {
 
@@ -41,6 +42,27 @@ public interface AdviceStatisticsRepository extends JpaRepository<Advice, Long> 
             @Param("from") LocalDateTime from,
             @Param("toExclusive") LocalDateTime toExclusive
     );
+
+    // 상담 만족도 통계
+    // 1. 점수별 분포
+    @Query(value = """
+        SELECT satisfaction_score, COUNT(*) 
+        FROM advice
+        WHERE created_at BETWEEN :start AND :end
+        GROUP BY satisfaction_score
+        ORDER BY satisfaction_score
+    """, nativeQuery = true)
+    List<Object[]> findScoreDistribution(@Param("start") LocalDateTime start,
+                                         @Param("end") LocalDateTime end);
+    // 2. 전체 요약
+    @Query(value = """
+        SELECT COUNT(*) as totalCount,
+               COALESCE(AVG(satisfaction_score), 0.0) as averageScore
+        FROM advice
+        WHERE created_at BETWEEN :start AND :end
+    """, nativeQuery = true)
+    Map<String, Object> findSatisfaction(@Param("start") LocalDateTime start,
+                                         @Param("end") LocalDateTime end);
 
     // 상담사별 성과
     // advice 테이블에 root category id를 넣는 방식으로 하면 재귀 쿼리는 없어질 수 있지만

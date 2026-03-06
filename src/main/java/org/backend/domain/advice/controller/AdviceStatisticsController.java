@@ -3,6 +3,7 @@ package org.backend.domain.advice.controller;
 import org.backend.common.CommonResponse;
 import org.backend.domain.advice.dto.AdviceCategoryRatioResponse;
 import org.backend.domain.advice.dto.AdvicePerformanceRow;
+import org.backend.domain.advice.dto.AdviceSatisfactionResponse;
 import org.backend.domain.advice.service.AdviceStatisticsService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +31,15 @@ public class AdviceStatisticsController {
     ) {
         AdviceCategoryRatioResponse data = adviceStatisticsService.getCategoryRatios(from, to);
         return CommonResponse.success(data, "상담 카테고리별 비중 조회 성공");
+    }
+
+    @GetMapping("/satisfaction")
+    public CommonResponse<AdviceSatisfactionResponse> getSSatisfaction(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ){
+        AdviceSatisfactionResponse data = adviceStatisticsService.getSatisfactionStatistics(from, to);
+        return CommonResponse.success(data, "상담 만족도 통계 조회 성공");
     }
 
     @GetMapping("/admin/performance")
