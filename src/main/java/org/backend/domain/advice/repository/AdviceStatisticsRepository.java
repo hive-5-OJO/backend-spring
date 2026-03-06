@@ -57,8 +57,8 @@ public interface AdviceStatisticsRepository extends JpaRepository<Advice, Long> 
                 
         Stats as(
             SELECT
-                a.admin_id, COUNT(*) as cnt, AVG(a.satisfactionScore) as avg_sat,
-                AVG(TIMESTAMPDIFF(SECOND, a.startAt, a.endAt)) as avg_dur,
+                a.admin_id, COUNT(*) as cnt, AVG(a.satisfaction_score) as avg_sat,
+                AVG(TIMESTAMPDIFF(SECOND, a.start_at, a.end_at)) as avg_dur,
                 SUM(CASE WHEN a.direction = 'IN' THEN 1 ELSE 0 END) as in_cnt,
                 SUM(CASE WHEN a.direction = 'OUT' THEN 1 ELSE 0 END) as out_cnt
             FROM advice a
