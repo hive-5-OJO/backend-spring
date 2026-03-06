@@ -13,28 +13,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdviceRepositoryImpl implements AdviceRepositoryCustom {
 
-    private final JPAQueryFactory queryFactory;
+        private final JPAQueryFactory queryFactory;
 
-    @Override
-    public List<HourlyConsultationDto> getHourlyStatistics() {
-        QAdvice advice = QAdvice.advice;
+        @Override
+        public List<HourlyConsultationDto> getHourlyStatistics() {
+                QAdvice advice = QAdvice.advice;
 
-        NumberExpression<Integer> hourExpression = advice.startAt.hour();
+                NumberExpression<Integer> hourExpression = advice.startAt.hour();
 
-        return queryFactory
-                .select(Projections.constructor(HourlyConsultationDto.class,
-                        hourExpression,
-                        new CaseBuilder()
-                                .when(advice.direction.equalsIgnoreCase("INBOUND")).then(1L)
-                                .otherwise(0L).sum(),
-                        new CaseBuilder()
-                                .when(advice.direction.equalsIgnoreCase("OUTBOUND")).then(1L)
-                                .otherwise(0L).sum(),
-                        advice.count()))
-                .from(advice)
-                .where(advice.startAt.isNotNull())
-                .groupBy(hourExpression)
-                .orderBy(hourExpression.asc())
-                .fetch();
-    }
+                return queryFactory
+                                .select(Projections.constructor(HourlyConsultationDto.class,
+                                                hourExpression,
+                                                new CaseBuilder()
+                                                                .when(advice.direction.equalsIgnoreCase("INBOUND"))
+                                                                .then(1L)
+                                                                .otherwise(0L).sum(),
+                                                new CaseBuilder()
+                                                                .when(advice.direction.equalsIgnoreCase("OUTBOUND"))
+                                                                .then(1L)
+                                                                .otherwise(0L).sum(),
+                                                advice.count()))
+                                .from(advice)
+                                .where(advice.startAt.isNotNull())
+                                .groupBy(hourExpression)
+                                .orderBy(hourExpression.asc())
+                                .fetch();
+        }
 }
