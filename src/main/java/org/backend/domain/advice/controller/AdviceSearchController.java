@@ -36,8 +36,5 @@ public class AdviceSearchController {
         }catch (Exception e){
             return CommonResponse.error(e.getMessage());
         }
-
-
-
     }
 }
