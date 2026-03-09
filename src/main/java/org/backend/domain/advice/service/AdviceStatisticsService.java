@@ -4,7 +4,9 @@ import org.backend.domain.advice.dto.*;
 import org.backend.domain.advice.repository.AdviceStatisticsRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.backend.domain.advice.dto.AdviceOutboundResponse;
+import org.backend.domain.advice.dto.AdviceOutboundSummaryRow;
+import org.backend.domain.advice.dto.AdvicePromotionStatItem;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -49,6 +51,36 @@ public class AdviceStatisticsService {
                 .toList();
 
         return new AdviceCategoryRatioResponse(total, items);
+    }
+
+    public AdviceOutboundResponse getOutboundStatistics(LocalDate from, LocalDate to) {
+        LocalDate startDate = (from != null) ? from : LocalDate.now().minusMonths(1);
+        LocalDate endDate = (to != null) ? to : LocalDate.now();
+
+        if (startDate.isAfter(endDate)) {
+            LocalDate temp = startDate;
+            startDate = endDate;
+            endDate = temp;
+        }
+
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.plusDays(1).atStartOfDay();
+
+        AdviceOutboundSummaryRow summary = repo.findOutboundSummary(start, end);
+
+        long totalAttempt = (summary != null && summary.getTotalAttempt() != null)
+                ? summary.getTotalAttempt()
+                : 0L;
+
+        List<AdvicePromotionStatItem> promotionStats = repo.findTop5PromotionStats(start, end)
+                .stream()
+                .map(row -> new AdvicePromotionStatItem(
+                        row.getPromotionName(),
+                        row.getAttempt()
+                ))
+                .toList();
+
+        return new AdviceOutboundResponse(totalAttempt, promotionStats);
     }
 
     // 상담 만족도 통계

@@ -1,7 +1,9 @@
 package org.backend.domain.advice.repository;
 
 import org.backend.domain.advice.dto.AdviceCategoryRatioRow;
+import org.backend.domain.advice.dto.AdviceOutboundSummaryRow;
 import org.backend.domain.advice.dto.AdvicePerformanceRow;
+import org.backend.domain.advice.dto.AdvicePromotionStatRow;
 import org.backend.domain.advice.entity.Advice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -41,6 +43,40 @@ public interface AdviceStatisticsRepository extends JpaRepository<Advice, Long> 
     long totalCount(
             @Param("from") LocalDateTime from,
             @Param("toExclusive") LocalDateTime toExclusive
+    );
+
+    //  아웃바운드 시도 통계용 요약 조회
+    @Query(value = """
+        SELECT COUNT(*) AS totalAttempt
+        FROM advice a
+        WHERE a.direction = 'OUT'
+          AND a.promotion_id IS NOT NULL
+          AND a.created_at >= :start
+          AND a.created_at < :end
+    """, nativeQuery = true)
+    AdviceOutboundSummaryRow findOutboundSummary(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
+    // 프로모션별 아웃바운드 시도 상위 5개 조회
+    @Query(value = """
+        SELECT
+            p.promotion_name AS promotionName,
+            COUNT(*) AS attempt
+        FROM advice a
+        JOIN promotion p ON a.promotion_id = p.promotion_id
+        WHERE a.direction = 'OUT'
+          AND a.promotion_id IS NOT NULL
+          AND a.created_at >= :start
+          AND a.created_at < :end
+        GROUP BY p.promotion_id, p.promotion_name
+        ORDER BY attempt DESC
+        LIMIT 5
+    """, nativeQuery = true)
+    List<AdvicePromotionStatRow> findTop5PromotionStats(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
     );
 
     // 상담 만족도 통계
