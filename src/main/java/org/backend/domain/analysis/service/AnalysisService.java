@@ -5,11 +5,17 @@ import lombok.RequiredArgsConstructor;
 import org.backend.domain.analysis.dto.AnalysisSummaryResponseDto;
 import org.backend.domain.analysis.dto.LtvResponseDto;
 import org.backend.domain.analysis.dto.RfmResponseDto;
+import org.backend.domain.analysis.dto.RfmSegmentResponseDto;
 import org.backend.domain.analysis.entity.Analysis;
 import org.backend.domain.analysis.entity.Rfm;
 import org.backend.domain.analysis.repository.AnalysisRepository;
 import org.backend.domain.analysis.repository.RfmRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -57,5 +63,30 @@ public class AnalysisService {
         return new RfmResponseDto(
                 rfm.getMemberId(),detail
         );
+    }
+
+    // 고객 전체 세그먼트별 rfm 조회
+    @Transactional(readOnly=true)
+    public RfmSegmentResponseDto getAllRfm(String baseMonth){
+        if (baseMonth == null || baseMonth.isEmpty()) {
+            LocalDateTime latest = analysisRepository.findLatestCreatedAt();
+            if (latest == null) return new RfmSegmentResponseDto(0L, List.of());
+            baseMonth = latest.format(DateTimeFormatter.ofPattern("yyyyMM"));
+        }
+
+        List<RfmSegmentResponseDto.SegmentDetail> segmentDetailList = analysisRepository.findRfmStatisticsBySegment(baseMonth);
+
+        Long totalCount = segmentDetailList.stream().mapToLong(RfmSegmentResponseDto.SegmentDetail::count).sum();
+
+        List<RfmSegmentResponseDto.SegmentDetail> calc = segmentDetailList.stream()
+                .map(s -> new RfmSegmentResponseDto.SegmentDetail(
+                    s.type(),
+                    s.count(),
+                    totalCount == 0 ? 0 : Math.round((s.count() * 100.0 / totalCount) * 100) / 100.0,
+                    s.avgR(),s.avgF(),s.avgM()
+                ))
+                .toList();
+
+        return new RfmSegmentResponseDto(totalCount, calc);
     }
 }
