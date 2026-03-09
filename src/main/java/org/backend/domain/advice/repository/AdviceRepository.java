@@ -7,7 +7,7 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
-public interface AdviceRepository extends JpaRepository<Advice, Long> {
+public interface AdviceRepository extends JpaRepository<Advice, Long>, AdviceRepositoryCustom {
 
     // 고객 개인 상담 이력 조회
     @Query("""
@@ -25,5 +25,6 @@ public interface AdviceRepository extends JpaRepository<Advice, Long> {
         ORDER BY a.createdAt DESC
     """)
     Page<CustomerConsultView> findConsults(@Param("memberId") Long memberId, Pageable pageable);
+
 
 }

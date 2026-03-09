@@ -7,10 +7,11 @@ import org.backend.common.exception.ErrorCode;
 import org.backend.common.page.PageResponse;
 import org.backend.domain.advice.repository.AdviceRepository;
 import org.backend.domain.advice.view.CustomerConsultView;
+import org.backend.domain.analysis.repository.CustomerSummaryRepository;
+
 import org.backend.domain.analysis.repository.FeatureConsultationRepository;
 import org.backend.domain.member.dto.*;
 import org.backend.domain.member.entity.Member;
-import org.backend.domain.analysis.repository.CustomerSummaryRepository;
 import org.backend.domain.member.repository.MemberRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
