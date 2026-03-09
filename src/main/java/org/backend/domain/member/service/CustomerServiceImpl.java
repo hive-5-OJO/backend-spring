@@ -5,19 +5,18 @@ import org.backend.common.CommonResponse;
 import org.backend.common.exception.CustomException;
 import org.backend.common.exception.ErrorCode;
 import org.backend.common.page.PageResponse;
+import org.backend.domain.advice.repository.AdviceRepository;
+import org.backend.domain.advice.view.CustomerConsultView;
 import org.backend.domain.analysis.repository.CustomerSummaryRepository;
+
 import org.backend.domain.analysis.repository.FeatureConsultationRepository;
-import org.backend.domain.member.dto.ConsultStatProjection;
-import org.backend.domain.member.dto.CustomerDetailResponse;
-import org.backend.domain.member.dto.CustomerFilterRequest;
-import org.backend.domain.member.dto.CustomerFilterResponse;
-import org.backend.domain.member.dto.CustomerSummaryProjection;
-import org.backend.domain.member.dto.CustomerSummaryResponse;
+import org.backend.domain.member.dto.*;
 import org.backend.domain.member.entity.Member;
 import org.backend.domain.member.repository.MemberRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +28,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final MemberRepository memberRepository;
     private final CustomerSummaryRepository summaryRepository;
     private final FeatureConsultationRepository featureRepository;
+    private final AdviceRepository adviceRepository;
 
     // 고객별 기본 정보 조회
     @Override
@@ -104,6 +104,29 @@ public class CustomerServiceImpl implements CustomerService {
             case "LOST" -> "이탈 고객";
             default -> "일반 고객";
         };
+    }
+
+    // 고객 개인 상담 이력 조회
+    @Override
+    public PageResponse<CustomerConsultDto> getCustomerConsults(Long memberId, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<CustomerConsultView> result = adviceRepository.findConsults(memberId, pageable);
+
+        Page<CustomerConsultDto> dtoPage = result.map(v ->
+                new CustomerConsultDto(
+                        v.getAdviceId(),
+                        v.getCategoryName(),
+                        v.getDirection(),
+                        v.getChannel(),
+                        v.getSatisfactionScore(),
+                        v.getIsConverted(),
+                        v.getCreatedAt()
+                )
+        );
+
+        return PageResponse.from(dtoPage);
     }
 
     // 고객 필터링
