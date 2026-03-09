@@ -20,6 +20,16 @@ public class AdviceStatisticsController {
 
     private final AdviceStatisticsService adviceStatisticsService;
 
+    @GetMapping("/time")
+    public CommonResponse<List<HourlyConsultationDto>> getHourlyStatistics() {
+        try {
+            List<HourlyConsultationDto> stats = adviceStatisticsService.getHourlyStatistics();
+            return CommonResponse.success(stats, null);
+        } catch (Exception e) {
+            return CommonResponse.error(e.getMessage());
+        }
+    }
+}
     public AdviceStatisticsController(AdviceStatisticsService adviceStatisticsService) {
         this.adviceStatisticsService = adviceStatisticsService;
     }
