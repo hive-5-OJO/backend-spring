@@ -3,10 +3,7 @@ package org.backend.domain.member.controller;
 import lombok.RequiredArgsConstructor;
 import org.backend.common.CommonResponse;
 import org.backend.common.page.PageResponse;
-import org.backend.domain.member.dto.CustomerDetailResponse;
-import org.backend.domain.member.dto.CustomerFilterRequest;
-import org.backend.domain.member.dto.CustomerFilterResponse;
-import org.backend.domain.member.dto.CustomerSummaryResponse;
+import org.backend.domain.member.dto.*;
 import org.backend.domain.member.service.CustomerService;
 import org.backend.domain.member.service.CustomerServiceImpl;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +34,19 @@ public class CustomerController {
                 return ResponseEntity.ok(
                                 customerService.getCustomerList(page, size));
         }
+
+        // 고객 개인 상담 이력 조회
+        @GetMapping("/consults")
+        public CommonResponse<PageResponse<CustomerConsultDto>> getCustomerConsults(
+                @RequestParam Long memberId,
+                @RequestParam(defaultValue = "0") int page,
+                @RequestParam(defaultValue = "10") int size
+        ) {
+            PageResponse<CustomerConsultDto> response =
+                    customerService.getCustomerConsults(memberId, page, size);
+            return CommonResponse.success(response, "고객 상담 이력 조회");
+        }
+
 
         // 고객 필터링 API
         @PostMapping("/filter")
