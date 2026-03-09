@@ -1,9 +1,10 @@
 package org.backend.domain.advice.dto;
 
-import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
 import org.backend.domain.advice.document.AdviceDocument;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Builder

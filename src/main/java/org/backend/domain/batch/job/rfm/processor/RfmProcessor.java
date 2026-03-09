@@ -1,8 +1,7 @@
 package org.backend.domain.batch.job.rfm.processor;
 
-import org.backend.domain.batch.entity.Monetary;
 import org.backend.domain.analysis.entity.Rfm;
-//import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.backend.domain.batch.entity.Monetary;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
