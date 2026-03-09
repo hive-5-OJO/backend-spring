@@ -1,6 +1,5 @@
 package org.backend.domain.subscription.dto.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

@@ -25,9 +25,6 @@ public class AdviceSearchService {
 
         return documentPage.map(AdviceSearchResponse::from);
 
-
-
-
     }
 
 }
