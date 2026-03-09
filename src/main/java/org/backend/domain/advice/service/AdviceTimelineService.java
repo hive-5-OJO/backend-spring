@@ -35,21 +35,9 @@ public class AdviceTimelineService {
                 .date(advice.getCreatedAt() != null ? advice.getCreatedAt().toLocalDate() : null)
                 .category(advice.getCategory() != null ? advice.getCategory().getCategoryName() : null)
                 .promotionName(advice.getPromotion() != null ? advice.getPromotion().getPromotionName() : null)
-                .direction(mapDirection(advice.getDirection()))
+                .direction(advice.getDirection())
                 .content(advice.getAdviceContent())
                 .satisfactionScore(advice.getSatisfactionScore())
                 .build();
-    }
-
-    private String mapDirection(String direction) {
-        if (direction == null) {
-            return null;
-        }
-
-        return switch (direction) {
-            case "INBOUND" -> "IN";
-            case "OUTBOUND" -> "OUT";
-            default -> direction;
-        };
     }
 }
