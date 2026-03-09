@@ -2,11 +2,13 @@ package org.backend.domain.member.controller;
 
 import org.backend.common.CommonResponse;
 import org.backend.common.page.PageResponse;
-import org.backend.domain.member.dto.search.CustomerSearchItem;
 import org.backend.domain.member.dto.search.CustomerSearchSummaryResponse;
 import org.backend.domain.member.service.CustomerSearchService;
 import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/customers")
