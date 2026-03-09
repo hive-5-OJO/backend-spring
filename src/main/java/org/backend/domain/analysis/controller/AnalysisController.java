@@ -8,6 +8,8 @@ import org.backend.domain.analysis.service.KpiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/analysis")
 @RequiredArgsConstructor
@@ -41,7 +43,15 @@ public class AnalysisController {
     @GetMapping("/rfm/segments")
     public ResponseEntity<CommonResponse<RfmSegmentResponseDto>> getRfmSegment(@RequestParam(name = "baseMonth") String baseMonth){
         RfmSegmentResponseDto data = analysisService.getAllRfm(baseMonth);
-        return ResponseEntity.ok(CommonResponse.success(data, "세그먼트별 RFM 조회 성공"));
+        String msg = String.format("%s 세그먼트별 RFM 조회 성공", baseMonth);
+        return ResponseEntity.ok(CommonResponse.success(data, msg));
+    }
+
+    @GetMapping("/rfm/trend")
+    public ResponseEntity<CommonResponse<List<RfmTrendResponseDto>>> getRfmTrend(@RequestParam(name = "months", defaultValue = "3") int months) {
+        List<RfmTrendResponseDto> data = analysisService.getRfmTrend(months);
+        String message = String.format("최근 %d개월간 RFM 트렌드 조회 성공", months);
+        return ResponseEntity.ok(CommonResponse.success(data, message));
     }
 
     // kpi 도출
