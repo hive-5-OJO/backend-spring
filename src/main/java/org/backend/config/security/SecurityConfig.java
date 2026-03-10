@@ -87,7 +87,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "http://127.0.0.1:3000",
-                "https://frontend-react-virid.vercel.app/"
+                "https://frontend-react-virid.vercel.app/",
+                "http://high5-ojo.s3-website.ap-northeast-2.amazonaws.com" // 프론트 배포 주소
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
