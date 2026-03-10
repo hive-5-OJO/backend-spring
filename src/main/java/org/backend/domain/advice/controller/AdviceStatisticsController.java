@@ -2,6 +2,7 @@ package org.backend.domain.advice.controller;
 
 import org.backend.common.CommonResponse;
 import org.backend.domain.advice.dto.AdviceCategoryRatioResponse;
+import org.backend.domain.advice.dto.AdviceOutboundResponse;
 import org.backend.domain.advice.dto.AdvicePerformanceRow;
 import org.backend.domain.advice.dto.AdviceSatisfactionResponse;
 import org.backend.domain.advice.service.AdviceStatisticsService;
@@ -41,6 +42,15 @@ public class AdviceStatisticsController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         AdviceCategoryRatioResponse data = adviceStatisticsService.getCategoryRatios(from, to);
         return CommonResponse.success(data, "상담 카테고리별 비중 조회 성공");
+    }
+
+    @GetMapping("/outbound")
+    public CommonResponse<AdviceOutboundResponse> getOutboundStatistics(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        AdviceOutboundResponse data = adviceStatisticsService.getOutboundStatistics(from, to);
+        return CommonResponse.success(data, null);
     }
 
     @GetMapping("/satisfaction")

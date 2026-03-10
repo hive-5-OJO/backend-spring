@@ -24,10 +24,11 @@ public class AuthController {
     private final AuthService authService;
     private final GoogleOAuthService googleOAuthService;
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
-    }
+        @PostMapping("/login")
+        public ResponseEntity<CommonResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
+            LoginResponse response = authService.login(request);
+            return ResponseEntity.ok(CommonResponse.success(response, "로그인 성공"));
+        }
 
     /**
      * 토큰 검증용 (Authorization: Bearer <accessToken>)
