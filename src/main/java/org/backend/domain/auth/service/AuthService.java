@@ -1,6 +1,8 @@
 package org.backend.domain.auth.service;
 
 import io.jsonwebtoken.Claims;
+import org.backend.common.exception.CustomException;
+import org.backend.common.exception.ErrorCode;
 import org.backend.config.security.JwtProvider;
 import org.backend.domain.admin.entity.Admin;
 import org.backend.domain.admin.entity.AdminStatus;
@@ -37,23 +39,22 @@ public class AuthService {
     @Transactional
     public LoginResponse login(LoginRequest request) {
         Admin admin = adminRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND));
 
-        // 비활성 계정 차단
         if (admin.getStatus() != AdminStatus.ACTIVE) {
-            throw new IllegalArgumentException("비활성화된 계정입니다.");
+            throw new CustomException(ErrorCode.INACTIVE_ADMIN);
         }
 
         if (Boolean.TRUE.equals(admin.getGoogle())) {
-            throw new IllegalArgumentException("구글 로그인 계정입니다. 구글 로그인을 이용하세요.");
+            throw new CustomException(ErrorCode.GOOGLE_LOGIN_REQUIRED);
         }
 
         if (admin.getPassword() == null || admin.getPassword().isBlank()) {
-            throw new IllegalArgumentException("비밀번호가 설정되지 않은 계정입니다.");
+            throw new CustomException(ErrorCode.PASSWORD_NOT_SET);
         }
 
         if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
 
         String role = admin.getRole().name();
@@ -62,7 +63,7 @@ public class AuthService {
 
         upsertRefreshToken(admin.getId(), refreshToken);
 
-        return new LoginResponse(accessToken, refreshToken, admin.getId(), admin.getEmail(), role,  admin.getName());
+        return new LoginResponse(accessToken, refreshToken, admin.getId(), admin.getEmail(), role, admin.getName());
     }
 
     @Transactional(readOnly = true)
@@ -78,27 +79,26 @@ public class AuthService {
         String refreshToken = request.getRefreshToken();
 
         if (!jwtProvider.validate(refreshToken) || !jwtProvider.isRefreshToken(refreshToken)) {
-            throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         Claims claims = jwtProvider.getClaims(refreshToken);
         Long adminId = Long.parseLong(claims.getSubject());
 
         RefreshToken saved = refreshTokenRepository.findByAdminId(adminId)
-                .orElseThrow(() -> new IllegalArgumentException("리프레시 토큰이 만료되었거나 로그아웃 상태입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED));
 
         if (!refreshToken.equals(saved.getToken())) {
             refreshTokenRepository.delete(saved);
-            throw new IllegalArgumentException("리프레시 토큰이 일치하지 않습니다. 다시 로그인하세요.");
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_MISMATCH);
         }
 
         Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(() -> new IllegalArgumentException("관리자 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND_FOR_ME));
 
-        // 비활성 계정이면 refresh로 재발급 못하게 차단
         if (admin.getStatus() != AdminStatus.ACTIVE) {
-            refreshTokenRepository.deleteByAdminId(adminId); // 깔끔하게 RT도 정리(선택이지만 추천)
-            throw new IllegalArgumentException("비활성화된 계정입니다.");
+            refreshTokenRepository.deleteByAdminId(adminId);
+            throw new CustomException(ErrorCode.INACTIVE_ADMIN);
         }
 
         String role = admin.getRole().name();
