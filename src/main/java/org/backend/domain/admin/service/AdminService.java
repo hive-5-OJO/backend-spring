@@ -50,23 +50,30 @@ public class AdminService {
         return result.map(AdminSummaryDto::from);
     }
 
-    //  ADMIN이 GUEST를 CS/MARKETING으로만 변경
     @Transactional
     public AdminRoleUpdateResponse updateRole(Long targetAdminId, AdminRole newRole) {
         if (newRole != AdminRole.CS && newRole != AdminRole.MARKETING) {
-            throw new IllegalArgumentException("GUEST는 CS 또는 MARKETING으로만 변경할 수 있습니다.");
+            throw new IllegalArgumentException("권한은 CS 또는 MARKETING으로만 변경할 수 있습니다.");
         }
 
         Admin target = adminRepository.findById(targetAdminId)
                 .orElseThrow(() -> new IllegalArgumentException("대상 관리자 계정을 찾을 수 없습니다."));
 
-        if (target.getRole() != AdminRole.GUEST) {
-            throw new IllegalArgumentException("GUEST 계정만 권한 변경이 가능합니다.");
+        // 슈퍼 어드민 권한 보호
+        if (target.getRole() == AdminRole.ADMIN) {
+            throw new IllegalArgumentException("ADMIN 계정의 권한은 변경할 수 없습니다.");
+        }
+
+        // 멱등 처리: 이미 같은 권한이면 그대로 반환
+        if (target.getRole() == newRole) {
+            return AdminRoleUpdateResponse.of(target.getId(), target.getRole());
         }
 
         target.changeRole(newRole);
-        //권한 즉시 반영을 위해 refresh 토큰 무효화(재로그인/재발급 강제)
+
+        // 권한 즉시 반영을 위해 refresh 토큰 무효화(재로그인/재발급 강제)
         refreshTokenRepository.deleteByAdminId(target.getId());
+
         return AdminRoleUpdateResponse.of(target.getId(), target.getRole());
     }
 
@@ -82,10 +89,9 @@ public class AdminService {
 
         target.changeStatus(newStatus);
 
-        // 상태 변경 즉시 반영: RT 삭제 (ACTIVE 삭제해도 무방)
+        // 상태 변경 즉시 반영: RT 삭제
         refreshTokenRepository.deleteByAdminId(target.getId());
 
         return AdminStatusUpdateResponse.of(target.getId(), target.getStatus());
     }
-
 }
