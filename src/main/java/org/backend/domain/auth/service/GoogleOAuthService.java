@@ -33,18 +33,28 @@ public class GoogleOAuthService {
         Admin admin = adminRepository.findByEmail(userInfo.email())
                 .orElseGet(() -> adminRepository.save(Admin.createGoogleUser(userInfo.name(), userInfo.email())));
 
-        // 비활성 계정 차단
         if (admin.getStatus() != AdminStatus.ACTIVE) {
-            refreshTokenRepository.deleteByAdminId(admin.getId()); // 혹시 남은 RT 정리(선택이지만 추천)
+            refreshTokenRepository.deleteByAdminId(admin.getId());
             throw new IllegalArgumentException("비활성화된 계정입니다.");
         }
 
-        String accessToken = jwtProvider.generateAccessToken(admin.getId(), admin.getEmail(), admin.getRole().name());
+        String accessToken = jwtProvider.generateAccessToken(
+                admin.getId(),
+                admin.getEmail(),
+                admin.getRole().name()
+        );
         String refreshToken = jwtProvider.generateRefreshToken(admin.getId());
 
         upsertRefreshToken(admin.getId(), refreshToken);
 
-        return new LoginResponse(accessToken, refreshToken, admin.getId(), admin.getEmail(), admin.getRole().name());
+        return new LoginResponse(
+                accessToken,
+                refreshToken,
+                admin.getId(),
+                admin.getEmail(),
+                admin.getRole().name(),
+                admin.getName()
+        );
     }
 
     private void upsertRefreshToken(Long adminId, String token) {

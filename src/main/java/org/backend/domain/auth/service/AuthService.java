@@ -62,7 +62,7 @@ public class AuthService {
 
         upsertRefreshToken(admin.getId(), refreshToken);
 
-        return new LoginResponse(accessToken, refreshToken, admin.getId(), admin.getEmail(), role);
+        return new LoginResponse(accessToken, refreshToken, admin.getId(), admin.getEmail(), role,  admin.getName());
     }
 
     @Transactional(readOnly = true)
