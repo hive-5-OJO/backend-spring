@@ -1,6 +1,8 @@
 package org.backend.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
+import org.backend.common.exception.CustomException;
+import org.backend.common.exception.ErrorCode;
 import org.backend.config.security.JwtProvider;
 import org.backend.domain.admin.entity.Admin;
 import org.backend.domain.admin.entity.AdminStatus;
@@ -35,7 +37,7 @@ public class GoogleOAuthService {
 
         if (admin.getStatus() != AdminStatus.ACTIVE) {
             refreshTokenRepository.deleteByAdminId(admin.getId());
-            throw new IllegalArgumentException("비활성화된 계정입니다.");
+            throw new CustomException(ErrorCode.INACTIVE_ADMIN);
         }
 
         String accessToken = jwtProvider.generateAccessToken(
