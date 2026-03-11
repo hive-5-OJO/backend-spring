@@ -2,10 +2,7 @@ package org.backend.domain.analysis.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.backend.common.CommonResponse;
-import org.backend.domain.analysis.dto.AnalysisSummaryResponseDto;
-import org.backend.domain.analysis.dto.LtvResponseDto;
-import org.backend.domain.analysis.dto.RfmKpiResponseDto;
-import org.backend.domain.analysis.dto.RfmResponseDto;
+import org.backend.domain.analysis.dto.*;
 import org.backend.domain.analysis.service.AnalysisService;
 import org.backend.domain.analysis.service.KpiService;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +48,21 @@ public class AnalysisController {
     public ResponseEntity<CommonResponse<RfmResponseDto>> getRfm(@PathVariable Long memberId) {
         RfmResponseDto data = analysisService.getRfm(memberId);
         return ResponseEntity.ok(CommonResponse.success(data, null));
+    }
+
+    // 전체 rfm 조회
+    @GetMapping("/rfm/segments")
+    public ResponseEntity<CommonResponse<RfmSegmentResponseDto>> getRfmSegment(@RequestParam(name = "baseMonth") String baseMonth){
+        RfmSegmentResponseDto data = analysisService.getAllRfm(baseMonth);
+        String msg = String.format("%s 세그먼트별 RFM 조회 성공", baseMonth);
+        return ResponseEntity.ok(CommonResponse.success(data, msg));
+    }
+
+    @GetMapping("/rfm/trend")
+    public ResponseEntity<CommonResponse<List<RfmTrendResponseDto>>> getRfmTrend(@RequestParam(name = "months", defaultValue = "3") int months) {
+        List<RfmTrendResponseDto> data = analysisService.getRfmTrend(months);
+        String message = String.format("최근 %d개월간 RFM 트렌드 조회 성공", months);
+        return ResponseEntity.ok(CommonResponse.success(data, message));
     }
 
     // kpi 도출

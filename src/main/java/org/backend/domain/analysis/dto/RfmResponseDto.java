@@ -14,5 +14,3 @@ public record RfmResponseDto (
         int rfmScore
     ){}
 }
-
-
