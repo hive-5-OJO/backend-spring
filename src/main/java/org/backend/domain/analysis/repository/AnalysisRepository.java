@@ -6,10 +6,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.Query;
+import java.util.List;
+
 @Repository
 public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
 
     Optional<Analysis> findByMemberId(Long memberId);
 
-    // 대시보드용 - 전체 고객 ltv, 등급별 고객수 등
+    @Query("SELECT a FROM Analysis a JOIN FETCH a.member")
+    List<Analysis> findAllWithMember();
 }

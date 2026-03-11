@@ -39,6 +39,13 @@ public class AnalysisController {
         return ResponseEntity.ok(CommonResponse.success(data, "대시보드 조회 성공"));
     }
 
+    // 대시보드 - 세그먼트
+    @GetMapping("/segements")
+    public ResponseEntity<CommonResponse<List<org.backend.domain.analysis.dto.SegmentDataDto>>> getSegments() {
+        List<org.backend.domain.analysis.dto.SegmentDataDto> data = analysisService.getSegments();
+        return ResponseEntity.ok(CommonResponse.success(data, "고객 분류 조회 성공"));
+    }
+
     // rfm 조회
     @GetMapping("/rfm/{memberId}")
     public ResponseEntity<CommonResponse<RfmResponseDto>> getRfm(@PathVariable Long memberId) {
