@@ -1,12 +1,16 @@
 package org.backend.domain.analysis.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import org.backend.domain.member.entity.Member;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+
+
 @Entity
+@Getter
 @Table(name = "data_usage")
 public class DataUsage {
 
