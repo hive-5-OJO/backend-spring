@@ -62,11 +62,14 @@ public class CustomerServiceImpl implements CustomerService {
         Page<CustomerSummaryResponse> mapped = result.map(p -> new CustomerSummaryResponse(
                 p.getMemberId(),
                 p.getName(),
+                p.getEmail(),
+                p.getPhone(),
                 p.getProductName(),
                 p.getCreatedAt().toLocalDate() + " ~ 현재",
                 p.getTopConsultCategory(),
                 calculateFrequency(p.getLast30dConsultCount(), avg, std),
-                convertVipType(p.getVipType())));
+                convertVipType(p.getVipType())
+        ));
 
         return CommonResponse.success(
                 PageResponse.from(mapped),
