@@ -51,6 +51,8 @@ public interface CustomerSummaryRepository extends JpaRepository<Member, Long> {
         SELECT
             m.member_id AS memberId,
             m.name AS name,
+            m.email AS email,
+            m.phone AS phone,
             m.created_at AS createdAt,
             fc.top_consult_category AS topConsultCategory,
             fc.last_30d_consult_count AS last30dConsultCount,
@@ -77,6 +79,8 @@ public interface CustomerSummaryRepository extends JpaRepository<Member, Long> {
     SELECT
         m.member_id AS memberId,
         m.name AS name,
+        m.email AS email,
+        m.phone AS phone,
         m.created_at AS createdAt,
         fc.top_consult_category AS topConsultCategory,
         fc.last_30d_consult_count AS last30dConsultCount,
