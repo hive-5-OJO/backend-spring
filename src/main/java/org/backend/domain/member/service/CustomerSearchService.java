@@ -60,6 +60,8 @@ public class CustomerSearchService {
                 .map(p -> new CustomerSearchSummaryResponse(
                         p.getMemberId(),
                         p.getName(),
+                        p.getEmail(),
+                        p.getPhone(),
                         p.getProductName(),
                         p.getCreatedAt().toLocalDate() + " ~ 현재",
                         p.getTopConsultCategory(),

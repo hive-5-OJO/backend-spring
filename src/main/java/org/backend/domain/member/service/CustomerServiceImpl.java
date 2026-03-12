@@ -62,8 +62,8 @@ public class CustomerServiceImpl implements CustomerService {
         Page<CustomerSummaryResponse> mapped = result.map(p -> new CustomerSummaryResponse(
                 p.getMemberId(),
                 p.getName(),
-                p.getEmail(),
-                p.getPhone(),
+                maskEmail(p.getEmail()),
+                maskPhone(p.getPhone()),
                 p.getProductName(),
                 p.getCreatedAt().toLocalDate() + " ~ 현재",
                 p.getTopConsultCategory(),
@@ -107,6 +107,39 @@ public class CustomerServiceImpl implements CustomerService {
             case "LOST" -> "이탈 고객";
             default -> "일반 고객";
         };
+    }
+
+    // 전화번호 마스킹
+    private String maskPhone(String phone) {
+
+        if (phone == null) return null;
+
+        String digits = phone.replaceAll("\\D", "");
+
+        if (digits.length() != 11) return phone;
+
+        return digits.substring(0,3) + "-****-" + digits.substring(7);
+    }
+
+    // 이메일 마스킹
+    private String maskEmail(String email) {
+
+        if (email == null || !email.contains("@")) {
+            return email;
+        }
+
+        String[] parts = email.split("@");
+        String id = parts[0];
+        String domain = parts[1];
+
+        if (id.length() <= 4) {
+            return id.charAt(0) + "**@" + domain;
+        }
+
+        String prefix = id.substring(0, 2);
+        String suffix = id.substring(id.length() - 2);
+
+        return prefix + "**" + suffix + "@" + domain;
     }
 
     // 고객 개인 상담 이력 조회
