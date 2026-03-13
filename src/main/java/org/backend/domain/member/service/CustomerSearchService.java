@@ -60,6 +60,8 @@ public class CustomerSearchService {
                 .map(p -> new CustomerSearchSummaryResponse(
                         p.getMemberId(),
                         p.getName(),
+                        maskEmail(p.getEmail()),
+                        maskPhone(p.getPhone()),
                         p.getProductName(),
                         p.getCreatedAt().toLocalDate() + " ~ 현재",
                         p.getTopConsultCategory(),
@@ -67,8 +69,40 @@ public class CustomerSearchService {
                         convertVipType(p.getVipType())
                 ))
                 .toList();
-
         return new PageImpl<>(content, pageable, searchResult.getTotalElements());
+    }
+
+    // 이메일 마스킹
+    private String maskEmail(String email) {
+
+        if (email == null || !email.contains("@")) {
+            return email;
+        }
+
+        String[] parts = email.split("@");
+        String id = parts[0];
+        String domain = parts[1];
+
+        if (id.length() <= 4) {
+            return id.charAt(0) + "**@" + domain;
+        }
+
+        String prefix = id.substring(0, 2);
+        String suffix = id.substring(id.length() - 2);
+
+        return prefix + "**" + suffix + "@" + domain;
+    }
+
+    // 전화번호 마스킹
+    private String maskPhone(String phone) {
+
+        if (phone == null) return null;
+
+        String digits = phone.replaceAll("\\D", "");
+
+        if (digits.length() != 11) return phone;
+
+        return digits.substring(0,3) + "-****-" + digits.substring(7);
     }
 
     private String calculateFrequency(Double count, double avg, double std) {

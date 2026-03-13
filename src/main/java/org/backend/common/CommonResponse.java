@@ -20,6 +20,10 @@ public class CommonResponse<T> {
         return new CommonResponse<>("success", data, message);
     }
 
+    public static <T> CommonResponse<T> fail(String message) {
+        return new CommonResponse<>("FAIL", null, message);
+    }
+
     public static <T> CommonResponse<T> error(String message) {
         return new CommonResponse<>("error", null, message);
     }

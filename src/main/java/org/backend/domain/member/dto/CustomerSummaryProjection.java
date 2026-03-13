@@ -6,6 +6,8 @@ public interface CustomerSummaryProjection {
 
     Long getMemberId();
     String getName();
+    String getEmail();
+    String getPhone();
     LocalDateTime getCreatedAt();
 
     String getTopConsultCategory();

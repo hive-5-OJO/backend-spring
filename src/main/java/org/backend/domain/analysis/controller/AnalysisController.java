@@ -19,22 +19,33 @@ public class AnalysisController {
 
     // 특정 고객 LTV 조회
     @GetMapping("/ltv/{memberId}")
-    public ResponseEntity<LtvResponseDto> getLtv(@PathVariable Long memberId){
+    public ResponseEntity<LtvResponseDto> getLtv(@PathVariable Long memberId) {
         return ResponseEntity.ok(analysisService.getLtvDetail(memberId));
     }
 
     // 고객 통합 분석 요약
     @GetMapping("/summary/{memberId}")
-    public ResponseEntity<AnalysisSummaryResponseDto> getAnalysisSummary(@PathVariable Long memberId){
+    public ResponseEntity<AnalysisSummaryResponseDto> getAnalysisSummary(@PathVariable Long memberId) {
         return ResponseEntity.ok(analysisService.getAnalysisSummary(memberId));
     }
 
     // 대시보드
-//    @GetMapping("/dashboard")
+    @GetMapping("/dashboard")
+    public ResponseEntity<CommonResponse<List<org.backend.domain.analysis.dto.DashboardKpiResponseDto>>> getDashboard() {
+        List<org.backend.domain.analysis.dto.DashboardKpiResponseDto> data = kpiService.getDashboardKpis();
+        return ResponseEntity.ok(CommonResponse.success(data, "대시보드 조회 성공"));
+    }
+
+    // 대시보드 - 세그먼트
+    @GetMapping("/segements")
+    public ResponseEntity<CommonResponse<List<org.backend.domain.analysis.dto.SegmentDataDto>>> getSegments() {
+        List<org.backend.domain.analysis.dto.SegmentDataDto> data = analysisService.getSegments();
+        return ResponseEntity.ok(CommonResponse.success(data, "고객 분류 조회 성공"));
+    }
 
     // rfm 조회
     @GetMapping("/rfm/{memberId}")
-    public ResponseEntity<CommonResponse<RfmResponseDto>> getRfm(@PathVariable Long memberId){
+    public ResponseEntity<CommonResponse<RfmResponseDto>> getRfm(@PathVariable Long memberId) {
         RfmResponseDto data = analysisService.getRfm(memberId);
         return ResponseEntity.ok(CommonResponse.success(data, null));
     }
@@ -56,7 +67,8 @@ public class AnalysisController {
 
     // kpi 도출
     @GetMapping("/rfmkpi")
-    public ResponseEntity<CommonResponse<RfmKpiResponseDto>> getKpi(@RequestParam(name = "baseMonth") String baseMonth){
+    public ResponseEntity<CommonResponse<RfmKpiResponseDto>> getKpi(
+            @RequestParam(name = "baseMonth") String baseMonth) {
         RfmKpiResponseDto data = kpiService.getKpi(baseMonth);
         return ResponseEntity.ok(CommonResponse.success(data, "kpi 조회 성공"));
     }
