@@ -1,7 +1,7 @@
 package org.backend.domain.batch.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.backend.common.CommonResponse; //
+import org.backend.common.CommonResponse;
 import org.backend.domain.batch.dto.response.BatchHistoryListResponse;
 import org.backend.domain.batch.dto.response.BatchStatusDetailResponse;
 import org.backend.domain.batch.dto.response.MemberFeatureResponse;
@@ -15,6 +15,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,10 +25,12 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/batch")
+@RequestMapping("api/batch")
 public class BatchController {
 
+    @Qualifier("asyncJobLauncher")
     private final JobLauncher jobLauncher;
+
     private final Job memberFeatureJob;
     private final JobExplorer jobExplorer;
     private final MemberRepository memberRepository;

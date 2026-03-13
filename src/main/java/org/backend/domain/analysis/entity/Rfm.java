@@ -15,12 +15,13 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+// member_id + updated_at로 복합키 사용할 수도 있음
 public class Rfm {
     @Id
     @Column(name = "member_id")
     private Long memberId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false, insertable = false, updatable = false)
     private Member member;
 
