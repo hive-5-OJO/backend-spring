@@ -16,8 +16,10 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
@@ -30,8 +32,11 @@ public class MemberFeatureJobConfig {
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
 
-    private static final int CHUNK_SIZE = 1000;
 
+    @Qualifier("stepTaskExecutor")
+    private final ThreadPoolTaskExecutor stepTaskExecutor;
+
+    private static final int CHUNK_SIZE = 1000;
 
     private <T> void writeFlattened(Chunk<? extends List<T>> items, JdbcBatchItemWriter<T> writer) throws Exception {
         List<T> flat = items.getItems().stream()
@@ -64,6 +69,7 @@ public class MemberFeatureJobConfig {
                 .reader(new ChunkMemberReader(consultationMemberReader, CHUNK_SIZE))
                 .processor(consultationProcessor)
                 .writer(items -> writeFlattened(items, consultationWriter))
+                .taskExecutor(stepTaskExecutor)
                 .build();
     }
 
@@ -78,6 +84,7 @@ public class MemberFeatureJobConfig {
                 .reader(new ChunkMemberReader(lifecycleMemberReader, CHUNK_SIZE))
                 .processor(memberLifecycleProcessor)
                 .writer(items -> writeFlattened(items, lifecycleWriter))
+                .taskExecutor(stepTaskExecutor)
                 .build();
     }
 
@@ -92,6 +99,7 @@ public class MemberFeatureJobConfig {
                 .reader(new ChunkMemberReader(monetaryMemberReader, CHUNK_SIZE))
                 .processor(monetaryProcessor)
                 .writer(items -> writeFlattened(items, monetaryWriter))
+                .taskExecutor(stepTaskExecutor)
                 .build();
     }
 
@@ -106,6 +114,7 @@ public class MemberFeatureJobConfig {
                 .reader(new ChunkMemberReader(usageMemberReader, CHUNK_SIZE))
                 .processor(usageProcessor)
                 .writer(items -> writeFlattened(items, usageWriter))
+                .taskExecutor(stepTaskExecutor)
                 .build();
     }
 }

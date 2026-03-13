@@ -40,7 +40,7 @@ public class ConsultationProcessor implements ItemProcessor<List<Member>, List<C
 
         List<Long> memberIds = members.stream().map(Member::getId).collect(Collectors.toList());
 
-        // targetDate 기준으로 Advice 필터링 추가
+
         List<Advice> allAdvices = em.createQuery(
                         "SELECT a FROM Advice a JOIN FETCH a.category " +
                                 "WHERE a.member.id IN :memberIds AND a.createdAt <= :targetLimit",
@@ -52,7 +52,7 @@ public class ConsultationProcessor implements ItemProcessor<List<Member>, List<C
         Map<Long, List<Advice>> adviceByMember = allAdvices.stream()
                 .collect(Collectors.groupingBy(a -> a.getMember().getId()));
 
-        // JdbcBatchItemWriter가 INSERT ... ON DUPLICATE KEY UPDATE로 upsert 처리
+
         return members.stream()
                 .map(member -> {
                     ConsultationBasics basics = createNew(member.getId(), targetDate);
