@@ -80,7 +80,7 @@ public class ConsultationProcessor implements ItemProcessor<List<Member>, List<C
             basics.setLastConsultDate(null);
             basics.setTopConsultCategory("None");
             basics.setTotalComplaintCount(0);
-            basics.setLastConsultDaysAgo(999);
+            basics.setLastConsultDaysAgo(null);
             basics.setNightConsultCount(0);
             basics.setWeekendConsultCount(0);
             return;
