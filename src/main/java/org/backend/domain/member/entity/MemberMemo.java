@@ -12,13 +12,13 @@ import lombok.NoArgsConstructor;
 @Table(name = "member_memo", indexes = {
         @Index(name = "idx_member_memo_unique", columnList = "memberId", unique = true)
 })
-public class MemberMemo  { // 등록/수정일 공통 클래스 사용 권장
+public class MemberMemo  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true) // 한 명의 회원당 하나만 존재하도록 설정
+    @Column(nullable = false, unique = true)
     private Long memberId;
 
     @Column(columnDefinition = "TEXT", nullable = false)
