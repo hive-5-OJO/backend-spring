@@ -52,3 +52,6 @@ es_data/
 **/*.yaml
 
 !.github/workflows/ci.yml
+
+# AWS Key
+*.pem

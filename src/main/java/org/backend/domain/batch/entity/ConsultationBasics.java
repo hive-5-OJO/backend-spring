@@ -67,6 +67,7 @@ public class ConsultationBasics {
     private Integer totalComplaintCount;
 
     // 마지막 상담 이후 경과일
-    @Column(name = "last_consult_days_ago", nullable = false)
+//    @Column(name = "last_consult_days_ago", nullable = false)
+    @Column(name = "last_consult_days_ago")
     private Integer lastConsultDaysAgo;
 }
