@@ -9,23 +9,27 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "member_memo", indexes = {
-        @Index(name = "idx_member_memo_unique", columnList = "memberId", unique = true)
+@Table(name = "member_memo", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_member_memo_admin_member", columnNames = {"admin_id", "member_id"})
 })
-public class MemberMemo  {
+public class MemberMemo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private Long memberId;
+    @Column(name = "admin_id", nullable = false)
+    private Long adminId;   // 메모를 작성한 상담사 ID (admin 테이블 FK)
+
+    @Column(name = "member_id", nullable = false)
+    private Long memberId;  // 메모 대상 고객 ID
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
     @Builder
-    public MemberMemo(Long memberId, String content) {
+    public MemberMemo(Long adminId, Long memberId, String content) {
+        this.adminId = adminId;
         this.memberId = memberId;
         this.content = content;
     }
