@@ -20,18 +20,19 @@ public class Channel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "channel_id")
     private Long id;
 
     @Column(name = "admin_id", nullable = false)
     private Long adminId;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 50)
     private String name;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Enumerated(EnumType.STRING)
+
     @Column(nullable = false, length = 20)
     private ChannelStatus status;
 
