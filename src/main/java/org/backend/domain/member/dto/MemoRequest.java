@@ -7,4 +7,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MemoRequest {
     private String content;
+    private String summary;
 }

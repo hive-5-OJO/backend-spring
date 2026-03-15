@@ -1,29 +1,32 @@
 package org.backend.domain.member.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import org.backend.domain.member.entity.MemberMemo;
 
+import java.time.LocalDateTime;
+
 @Getter
+@Builder
 public class MemberMemoResponse {
 
-    private final Long id;
-    private final Long adminId;
-    private final Long memberId;
-    private final String content;
-
-    private MemberMemoResponse(Long id, Long adminId, Long memberId, String content) {
-        this.id = id;
-        this.adminId = adminId;
-        this.memberId = memberId;
-        this.content = content;
-    }
+    private Long id;
+    private Long memberId;
+    private Long adminId;
+    private String content;
+    private String summary;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public static MemberMemoResponse from(MemberMemo memo) {
-        return new MemberMemoResponse(
-                memo.getId(),
-                memo.getAdminId(),
-                memo.getMemberId(),
-                memo.getContent()
-        );
+        return MemberMemoResponse.builder()
+                .id(memo.getId())
+                .memberId(memo.getMemberId())
+                .adminId(memo.getAdminId())
+                .content(memo.getContent())
+                .summary(memo.getSummary())
+                .createdAt(memo.getCreatedAt())
+                .updatedAt(memo.getUpdatedAt())
+                .build();
     }
 }
