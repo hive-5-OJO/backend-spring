@@ -86,10 +86,14 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         if (categoryId == null) {
             return null;
         }
+        
+        org.backend.domain.advice.entity.QCategories category = org.backend.domain.advice.entity.QCategories.categories;
         return member.id.in(
                 JPAExpressions
                         .select(advice.member.id)
                         .from(advice)
-                        .where(advice.category.id.eq(categoryId)));
+                        .join(advice.category, category)
+                        .where(category.id.eq(categoryId).or(category.parentId.eq(categoryId)))
+        );
     }
 }
