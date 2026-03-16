@@ -76,17 +76,17 @@ public class AdviceTimelineService {
         // 1. 요금/청구 문의 패턴
         String billingFormatted = tryFormatBillingContent(normalized);
         if (billingFormatted != null) {
-            return billingFormatted;
+            return removeTrailingProductInfo(billingFormatted);
         }
 
         // 2. 연체/미납 안내 패턴
         String overdueFormatted = tryFormatOverdueContent(normalized);
         if (overdueFormatted != null) {
-            return overdueFormatted;
+            return removeTrailingProductInfo(overdueFormatted);
         }
 
         // 3. 그 외에는 원문 반환
-        return normalized;
+        return removeTrailingProductInfo(normalized);
     }
 
     private String tryFormatBillingContent(String raw) {
@@ -156,5 +156,13 @@ public class AdviceTimelineService {
 
     private Long formatSatisfactionScore(Long satisfactionScore) {
         return satisfactionScore != null ? satisfactionScore : 0L;
+    }
+
+    private String removeTrailingProductInfo(String content) {
+        if (content == null || content.isBlank()) {
+            return content;
+        }
+
+        return content.replaceFirst("\\s*/\\s*[^/]+\\((전화|문자|앱)\\)\\s*$", "").trim();
     }
 }
