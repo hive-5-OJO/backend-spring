@@ -8,6 +8,7 @@ import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
 @RequiredArgsConstructor
@@ -17,17 +18,42 @@ public class MemberReaderConfig {
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<Member> memberReader() {
-        return new JpaPagingItemReaderBuilder<Member>()
-                .name("memberReader")
-                .entityManagerFactory(emf)
-                .queryString("SELECT m FROM Member m")
-                .pageSize(1000)
-                .saveState(false) //멀티 스레드 환경에서는 false 설정 권장
-                .build();
+    public JpaPagingItemReader<Member> consultationMemberReader() {
+        return buildReader("consultationMemberReader");
     }
 
     @Bean
+    @StepScope
+    public JpaPagingItemReader<Member> lifecycleMemberReader() {
+        return buildReader("lifecycleMemberReader");
+    }
+
+    @Bean
+    @StepScope
+    public JpaPagingItemReader<Member> monetaryMemberReader() {
+        return buildReader("monetaryMemberReader");
+    }
+
+    @Bean
+    @StepScope
+    public JpaPagingItemReader<Member> usageMemberReader() {
+        return buildReader("usageMemberReader");
+    }
+
+
+    private JpaPagingItemReader<Member> buildReader(String name) {
+        return new JpaPagingItemReaderBuilder<Member>()
+                .name(name)
+                .entityManagerFactory(emf)
+                .queryString("SELECT m FROM Member m LEFT JOIN FETCH m.consent")
+                .pageSize(1000)
+                .saveState(false)
+                .build();
+    }
+
+
+    @Bean
+    @Profile("test")
     @StepScope
     public JpaPagingItemReader<Member> memberReaderTest() {
         return new JpaPagingItemReaderBuilder<Member>()
@@ -36,7 +62,10 @@ public class MemberReaderConfig {
                 .queryString("SELECT m FROM Member m")
                 .pageSize(1000)
                 .maxItemCount(10)
-                .saveState(false) //멀티 스레드 환경에서는 false 설정 권장
+                .saveState(false)
                 .build();
     }
+
+
+
 }

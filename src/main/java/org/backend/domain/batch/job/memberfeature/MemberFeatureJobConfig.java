@@ -1,20 +1,29 @@
 package org.backend.domain.batch.job.memberfeature;
 
 import lombok.RequiredArgsConstructor;
-import org.backend.domain.batch.job.memberfeature.reader.MemberReaderConfig;
+import org.backend.domain.batch.entity.ConsultationBasics;
+import org.backend.domain.batch.entity.FeatureUsage;
+import org.backend.domain.batch.entity.Lifecycle;
+import org.backend.domain.batch.entity.Monetary;
+import org.backend.domain.batch.job.memberfeature.reader.ChunkMemberReader;
 import org.backend.domain.member.entity.Member;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.JdbcBatchItemWriter;
+import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @RequiredArgsConstructor
@@ -22,19 +31,18 @@ public class MemberFeatureJobConfig {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
-    private final MemberReaderConfig memberReaderConfig;
 
 
-     // TaskExecutor 설정
-    @Bean
-    public TaskExecutor taskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);    // 기본 스레드 4개
-        executor.setMaxPoolSize(8);     // 최대 8개까지 확장
-        executor.setQueueCapacity(500); // 대기열 설정
-        executor.setThreadNamePrefix("batch-thread-");
-        executor.initialize();
-        return executor;
+    @Qualifier("stepTaskExecutor")
+    private final ThreadPoolTaskExecutor stepTaskExecutor;
+
+    private static final int CHUNK_SIZE = 1000;
+
+    private <T> void writeFlattened(Chunk<? extends List<T>> items, JdbcBatchItemWriter<T> writer) throws Exception {
+        List<T> flat = items.getItems().stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+        writer.write(new Chunk<>(flat));
     }
 
     @Bean
@@ -51,54 +59,62 @@ public class MemberFeatureJobConfig {
     }
 
     @Bean
-    public Step consultationStep(ItemProcessor<Member, ?> consultationProcessor,
-                                 ItemWriter<Object> memberWriter) {
+    public Step consultationStep(
+            ItemProcessor<List<Member>, List<ConsultationBasics>> consultationProcessor,
+            JdbcBatchItemWriter<ConsultationBasics> consultationWriter,
+            JpaPagingItemReader<Member> consultationMemberReader) {
+
         return new StepBuilder("consultationStep", jobRepository)
-                .<Member, Object>chunk(1000, transactionManager)
-//                .reader(memberReaderConfig.memberReader())
-                .reader(memberReaderConfig.memberReaderTest())
-                .processor((ItemProcessor<? super Member, ?>) consultationProcessor)
-                .writer(memberWriter)
-                .taskExecutor(taskExecutor())
+                .<List<Member>, List<ConsultationBasics>>chunk(1, transactionManager)
+                .reader(new ChunkMemberReader(consultationMemberReader, CHUNK_SIZE))
+                .processor(consultationProcessor)
+                .writer(items -> writeFlattened(items, consultationWriter))
+                .taskExecutor(stepTaskExecutor)
                 .build();
     }
 
     @Bean
-    public Step lifecycleStep(ItemProcessor<Member, ?> memberLifecycleProcessor,
-                              ItemWriter<Object> memberWriter) {
+    public Step lifecycleStep(
+            ItemProcessor<List<Member>, List<Lifecycle>> memberLifecycleProcessor,
+            JdbcBatchItemWriter<Lifecycle> lifecycleWriter,
+            JpaPagingItemReader<Member> lifecycleMemberReader) {
+
         return new StepBuilder("lifecycleStep", jobRepository)
-                .<Member, Object>chunk(1000, transactionManager)
-//                .reader(memberReaderConfig.memberReader())
-                .reader(memberReaderConfig.memberReaderTest())
-                .processor((ItemProcessor<? super Member, ?>) memberLifecycleProcessor)
-                .writer(memberWriter)
-                .taskExecutor(taskExecutor())
+                .<List<Member>, List<Lifecycle>>chunk(1, transactionManager)
+                .reader(new ChunkMemberReader(lifecycleMemberReader, CHUNK_SIZE))
+                .processor(memberLifecycleProcessor)
+                .writer(items -> writeFlattened(items, lifecycleWriter))
+                .taskExecutor(stepTaskExecutor)
                 .build();
     }
 
     @Bean
-    public Step monetaryStep(ItemProcessor<Member, ?> monetaryProcessor,
-                             ItemWriter<Object> memberWriter) {
+    public Step monetaryStep(
+            ItemProcessor<List<Member>, List<Monetary>> monetaryProcessor,
+            JdbcBatchItemWriter<Monetary> monetaryWriter,
+            JpaPagingItemReader<Member> monetaryMemberReader) {
+
         return new StepBuilder("monetaryStep", jobRepository)
-                .<Member, Object>chunk(1000, transactionManager)
-//                .reader(memberReaderConfig.memberReader())
-                .reader(memberReaderConfig.memberReaderTest())
-                .processor((ItemProcessor<? super Member, ?>) monetaryProcessor)
-                .writer(memberWriter)
-                .taskExecutor(taskExecutor())
+                .<List<Member>, List<Monetary>>chunk(1, transactionManager)
+                .reader(new ChunkMemberReader(monetaryMemberReader, CHUNK_SIZE))
+                .processor(monetaryProcessor)
+                .writer(items -> writeFlattened(items, monetaryWriter))
+                .taskExecutor(stepTaskExecutor)
                 .build();
     }
 
     @Bean
-    public Step usageStep(ItemProcessor<Member, ?> usageProcessor,
-                          ItemWriter<Object> memberWriter) {
+    public Step usageStep(
+            ItemProcessor<List<Member>, List<FeatureUsage>> usageProcessor,
+            JdbcBatchItemWriter<FeatureUsage> usageWriter,
+            JpaPagingItemReader<Member> usageMemberReader) {
+
         return new StepBuilder("usageStep", jobRepository)
-                .<Member, Object>chunk(1000, transactionManager)
-//                .reader(memberReaderConfig.memberReader())
-                .reader(memberReaderConfig.memberReaderTest())
-                .processor((ItemProcessor<? super Member, ?>) usageProcessor)
-                .writer(memberWriter)
-                .taskExecutor(taskExecutor())
+                .<List<Member>, List<FeatureUsage>>chunk(1, transactionManager)
+                .reader(new ChunkMemberReader(usageMemberReader, CHUNK_SIZE))
+                .processor(usageProcessor)
+                .writer(items -> writeFlattened(items, usageWriter))
+                .taskExecutor(stepTaskExecutor)
                 .build();
     }
 }
