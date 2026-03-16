@@ -35,9 +35,37 @@ public class AdviceTimelineService {
                 .date(advice.getCreatedAt() != null ? advice.getCreatedAt().toLocalDate() : null)
                 .category(advice.getCategory() != null ? advice.getCategory().getCategoryName() : null)
                 .promotionName(advice.getPromotion() != null ? advice.getPromotion().getPromotionName() : null)
-                .direction(advice.getDirection())
-                .content(advice.getAdviceContent())
-                .satisfactionScore(advice.getSatisfactionScore())
+                .direction(formatDirection(advice.getDirection()))
+                .content(formatContent(advice))
+                .satisfactionScore(formatSatisfactionScore(advice.getSatisfactionScore()))
                 .build();
+    }
+
+    private String formatDirection(String direction) {
+        if (direction == null || direction.isBlank()) {
+            return null;
+        }
+
+        return switch (direction.toUpperCase()) {
+            case "IN" -> "인바운드";
+            case "OUT" -> "아웃바운드";
+            default -> direction;
+        };
+    }
+
+    private String formatContent(Advice advice) {
+        String raw = advice.getAdviceContent();
+        if (raw == null || raw.isBlank()) {
+            return "상담 내용이 없습니다.";
+        }
+
+        return raw
+                .replace("(CALL)", "(전화)")
+                .replace("(SMS)", "(문자)")
+                .replace("(APP)", "(앱)");
+    }
+
+    private Long formatSatisfactionScore(Long satisfactionScore) {
+        return satisfactionScore != null ? satisfactionScore : 0L;
     }
 }
