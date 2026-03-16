@@ -1,6 +1,9 @@
 package org.backend.domain.channel.service;
 
 import lombok.RequiredArgsConstructor;
+import org.backend.common.exception.CustomException;
+import org.backend.common.exception.ErrorCode;
+import org.backend.domain.admin.repository.AdminRepository;
 import org.backend.domain.channel.dto.*;
 import org.backend.domain.channel.entity.Channel;
 import org.backend.domain.channel.entity.ChannelMember;
@@ -21,11 +24,15 @@ public class ChannelService {
     private final ChannelRepository channelRepository;
     private final ChannelMemberRepository channelMemberRepository;
     private final MemberRepository memberRepository;
+    private final AdminRepository adminRepository;
 
     // ── 채널 CRUD ──────────────────────────────────────────────
 
     @Transactional
     public ChannelResponse createChannel(Long adminId, ChannelRequest request) {
+        if (!adminRepository.existsById(adminId)) {
+            throw new CustomException(ErrorCode.ADMIN_NOT_FOUND_FOR_ME);
+        }
         Channel channel = Channel.builder()
                 .adminId(adminId)
                 .name(request.getName())
@@ -53,8 +60,9 @@ public class ChannelService {
 
     @Transactional
     public void deleteChannel(Long channelId) {
+        // cascade = ALL이라 channelMembers 함께 삭제되므로 fetch 불필요
         Channel channel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다. ID: " + channelId));
+                .orElseThrow(() -> new CustomException(ErrorCode.CHANNEL_NOT_FOUND));
         channelRepository.delete(channel);
     }
 
@@ -70,21 +78,21 @@ public class ChannelService {
                 .filter(id -> !existingMemberIds.contains(id))
                 .toList();
         if (!notFound.isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 회원입니다. IDs: " + notFound);
+            throw new CustomException(ErrorCode.MEMBERS_NOT_FOUND);
         }
 
         Set<Long> alreadyInChannel = channelMemberRepository.findExistingMemberIds(channelId, memberIds);
 
-        return memberIds.stream()
+        List<ChannelMember> newMembers = memberIds.stream()
                 .filter(memberId -> !alreadyInChannel.contains(memberId))
-                .map(memberId -> ChannelMemberResponse.from(
-                        channelMemberRepository.save(
-                                ChannelMember.builder()
-                                        .channel(channel)
-                                        .memberId(memberId)
-                                        .build()
-                        )
-                ))
+                .map(memberId -> ChannelMember.builder()
+                        .channel(channel)
+                        .memberId(memberId)
+                        .build())
+                .toList();
+
+        return channelMemberRepository.saveAll(newMembers).stream()
+                .map(ChannelMemberResponse::from)
                 .toList();
     }
 
@@ -101,7 +109,7 @@ public class ChannelService {
         checkChannelExists(channelId);
         ChannelMember channelMember = channelMemberRepository
                 .findByChannelIdAndMemberId(channelId, memberId)
-                .orElseThrow(() -> new IllegalArgumentException("채널에 해당 고객이 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.CHANNEL_MEMBER_NOT_FOUND));
         channelMemberRepository.delete(channelMember);
     }
 
@@ -116,7 +124,7 @@ public class ChannelService {
                 .filter(id -> !existingInChannel.contains(id))
                 .toList();
         if (!notFound.isEmpty()) {
-            throw new IllegalArgumentException("채널에 존재하지 않는 고객입니다. IDs: " + notFound);
+            throw new CustomException(ErrorCode.CHANNEL_MEMBERS_NOT_FOUND);
         }
 
         channelMemberRepository.deleteByChannelIdAndMemberIdIn(channelId, memberIds);
@@ -133,12 +141,12 @@ public class ChannelService {
 
     private Channel findChannelWithMembersById(Long channelId) {
         return channelRepository.findByIdWithMembers(channelId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다. ID: " + channelId));
+                .orElseThrow(() -> new CustomException(ErrorCode.CHANNEL_NOT_FOUND));
     }
 
     private void checkChannelExists(Long channelId) {
         if (!channelRepository.existsById(channelId)) {
-            throw new IllegalArgumentException("존재하지 않는 채널입니다. ID: " + channelId);
+            throw new CustomException(ErrorCode.CHANNEL_NOT_FOUND);
         }
     }
 }
