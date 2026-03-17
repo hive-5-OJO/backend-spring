@@ -35,11 +35,13 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 .select(Projections.constructor(CustomerFilterResponse.class,
                         member.id,
                         member.name,
+                        member.email,
+                        member.phone,
                         Expressions.nullExpression(String.class),
                         Expressions.nullExpression(String.class),
                         member.createdAt,
                         com.querydsl.core.types.ExpressionUtils.as(JPAExpressions.select(advice.id.count()).from(advice).where(advice.member.eq(member)), "frequency"),
-                        Expressions.nullExpression(String.class)))
+                        analysis.type))
                 .from(member)
                 .leftJoin(analysis).on(analysis.member.eq(member))
                 .leftJoin(rfm).on(rfm.member.eq(member))
