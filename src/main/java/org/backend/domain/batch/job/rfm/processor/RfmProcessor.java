@@ -12,11 +12,18 @@ public class RfmProcessor implements ItemProcessor<Monetary, Rfm> {
     @Override
     public Rfm process(Monetary monetary){
 
+        if (monetary.getLastPaymentDate() == null) {
+            return null;
+        }
+
+        Integer frequency = monetary.getPaymentCount6m() != null ? monetary.getPaymentCount6m() : 0;
+        Long revenue = monetary.getTotalRevenue() != null ? monetary.getTotalRevenue() : 0L;
+
         return Rfm.builder()
             .memberId(monetary.getMemberId())
             .recency(monetary.getLastPaymentDate().atStartOfDay())
-            .frequency(monetary.getPaymentCount6m())
-            .monetary(monetary.getTotalRevenue())
+            .frequency(frequency)
+            .monetary(revenue)
             .updatedAt(LocalDateTime.now())
             .build();
     }
