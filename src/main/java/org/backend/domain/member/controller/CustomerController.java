@@ -5,10 +5,11 @@ import org.backend.common.CommonResponse;
 import org.backend.common.page.PageResponse;
 import org.backend.domain.member.dto.*;
 import org.backend.domain.member.service.CustomerService;
-import org.backend.domain.member.service.CustomerServiceImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -27,12 +28,13 @@ public class CustomerController {
         }
 
         // 고객 전체 리스트
-        @GetMapping("/list")
+        @PostMapping("/list")
         public ResponseEntity<CommonResponse<PageResponse<CustomerSummaryResponse>>> getCustomerList(
-                        @RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "10") int size) {
+                @RequestParam(defaultValue = "0") int page,
+                @RequestParam(defaultValue = "10") int size,
+                @RequestBody(required = false)List<MemberSortRequest> sorts) {
                 return ResponseEntity.ok(
-                                customerService.getCustomerList(page, size));
+                                customerService.getCustomerList(page, size, sorts));
         }
 
         // 고객 개인 상담 이력 조회

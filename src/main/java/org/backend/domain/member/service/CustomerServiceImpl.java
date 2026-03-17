@@ -20,6 +20,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -47,6 +49,50 @@ public class CustomerServiceImpl implements CustomerService {
     public CommonResponse<PageResponse<CustomerSummaryResponse>> getCustomerList(int page, int size) {
 
         Pageable pageable = PageRequest.of(page, size);
+
+        // 통계 가져오기
+        ConsultStatProjection stats = featureRepository.getConsultStats();
+
+        double avg = stats != null && stats.getAvgValue() != null ? stats.getAvgValue() : 0;
+
+        double std = stats != null && stats.getStdValue() != null ? stats.getStdValue() : 0;
+
+        // 고객 요약 조회
+        Page<CustomerSummaryProjection> result = summaryRepository.findCustomerSummary(pageable);
+
+        // 매핑
+        Page<CustomerSummaryResponse> mapped = result.map(p -> new CustomerSummaryResponse(
+                p.getMemberId(),
+                p.getName(),
+                maskEmail(p.getEmail()),
+                maskPhone(p.getPhone()),
+                p.getProductName(),
+                p.getCreatedAt().toLocalDate() + " ~ 현재",
+                p.getTopConsultCategory(),
+                calculateFrequency(p.getLast30dConsultCount(), avg, std),
+                convertVipType(p.getVipType())
+        ));
+
+        return CommonResponse.success(
+                PageResponse.from(mapped),
+                "고객 목록 조회");
+    }
+    // 정렬 추가 - 작동 테스트 후 위 서비스 삭제
+    @Override
+    public CommonResponse<PageResponse<CustomerSummaryResponse>> getCustomerList(int page, int size, List<MemberSortRequest> sorts) {
+        // 다중 정렬
+        Sort sort = Sort.unsorted();
+        if(sorts != null && !sorts.isEmpty()){
+            List<Sort.Order> orders = sorts.stream()
+                .map(s -> new Sort.Order(
+                    s.getOrder().equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC,
+                    sortField(s.getField())
+                ))
+                .toList();
+            sort = Sort.by(orders);
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         // 통계 가져오기
         ConsultStatProjection stats = featureRepository.getConsultStats();
@@ -171,5 +217,18 @@ public class CustomerServiceImpl implements CustomerService {
             Pageable pageable) {
         Page<CustomerFilterResponse> result = memberRepository.findFilteredCustomers(request, pageable);
         return CommonResponse.success(PageResponse.from(result), "필터링된 고객 목록 조회");
+    }
+
+    // 프론트 필드명 매핑
+    private String sortField(String frontField){
+        return switch (frontField){
+            case "name" -> "name"; // 이름
+            case "phone" -> "phone"; // 휴대폰 번호
+            case "email" -> "email"; // 이메일
+            case "frequency" -> "last30dConsultCount"; // 상담빈도
+            case "period" -> "createdAt"; // 이용기간
+            case "customerType" -> "vipType"; // 고객 분류
+            default -> frontField;
+        };
     }
 }
