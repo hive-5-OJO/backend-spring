@@ -56,6 +56,8 @@ public class MemberLifecycleProcessor implements ItemProcessor<List<Member>, Lis
                 .collect(Collectors.toList());
     }
 
+
+
     private Lifecycle buildLifecycle(Member member, LocalDate today, Map<Long, LocalDate> lastActivityMap) {
         LocalDate signupDate = member.getCreatedAt().toLocalDate();
         int lifetimeDays = (int) ChronoUnit.DAYS.between(signupDate, today);
@@ -65,9 +67,12 @@ public class MemberLifecycleProcessor implements ItemProcessor<List<Member>, Lis
                 ? (int) ChronoUnit.DAYS.between(lastActivityDate, today)
                 : lifetimeDays;
 
+        // 휴면/해지 상태면 약정만료일 0
+        String status = member.getStatus();
+        boolean isInactive = "DORMANT".equalsIgnoreCase(status) || "TERMINATED".equalsIgnoreCase(status);
 
-        int totalContractDays = 730;
-        int contractEndDaysLeft = Math.max(0, totalContractDays - lifetimeDays);
+        int totalContractDays = 1825;
+        int contractEndDaysLeft = isInactive ? 0 : Math.max(0, totalContractDays - lifetimeDays);
 
         return Lifecycle.builder()
                 .memberId(member.getId())
@@ -75,10 +80,8 @@ public class MemberLifecycleProcessor implements ItemProcessor<List<Member>, Lis
                 .signupDate(signupDate)
                 .memberLifetimeDays(lifetimeDays)
                 .isNewCustomerFlag(lifetimeDays <= 30)
-//                .isDormantFlag("DORMANT".equalsIgnoreCase(member.getStatus()))
-                // 마지막 활동 일자가 300일 넘는 고객을 휴먼 고객으로 저장
-                .isDormantFlag(daysSinceLastActivity >= 300)
-                .isTerminatedFlag("TERMINATED".equalsIgnoreCase(member.getStatus()))
+                .isDormantFlag("DORMANT".equalsIgnoreCase(status))
+                .isTerminatedFlag("TERMINATED".equalsIgnoreCase(status))
                 .daysSinceLastActivity(daysSinceLastActivity)
                 .contractEndDaysLeft(contractEndDaysLeft)
                 .build();

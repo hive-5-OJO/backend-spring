@@ -11,23 +11,42 @@ import java.time.temporal.ChronoUnit;
 @Setter
 @NoArgsConstructor
 public class CustomerFilterResponse {
-
     private Long memberId;
     private String name;
-    private String serviceName;
-    private String mainCategoryName;
-    private Integer usageMonths;
-    private String frequency;
-    private String isVip;
+    private String email;
+    private String phone;
+    private String service;
+    private String servicePeriod;
+    private String consultCategory;
+    private String consultFrequency;
+    private String vip;
 
-    public CustomerFilterResponse(Long memberId, String name, String serviceName, String mainCategoryName,
-            LocalDateTime createdAt, Integer frequency, String isVip) {
+    public CustomerFilterResponse(Long memberId, String name, String email, String phone, 
+            String service, String consultCategory, LocalDateTime createdAt, Long frequency, String type) {
         this.memberId = memberId;
         this.name = name;
-        this.serviceName = serviceName;
-        this.mainCategoryName = mainCategoryName;
-        this.usageMonths = createdAt != null ? (int) ChronoUnit.MONTHS.between(createdAt, LocalDateTime.now()) : 0;
-        this.frequency = frequency != null ? frequency.toString() : null;
-        this.isVip = isVip;
+        this.email = email;
+        this.phone = phone;
+        this.service = service;
+        this.servicePeriod = createdAt != null ? createdAt.toLocalDate().toString() + " ~ 현재" : null;
+        this.consultCategory = consultCategory;
+        
+        if (frequency == null) {
+            this.consultFrequency = "LOW";
+        } else if (frequency <= 2) {
+            this.consultFrequency = "LOW";
+        } else if (frequency <= 5) {
+            this.consultFrequency = "MEDIUM";
+        } else {
+            this.consultFrequency = "HIGH";
+        }
+        
+        if (type == null) {
+            this.vip = "일반 고객";
+        } else if (type.equalsIgnoreCase("VIP")) {
+            this.vip = "VIP 고객";
+        } else {
+            this.vip = "일반 고객";
+        }
     }
 }

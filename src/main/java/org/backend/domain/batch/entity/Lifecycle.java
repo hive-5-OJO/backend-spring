@@ -7,9 +7,13 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "feature_lifecycle", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_lifecycle_member_date", columnNames = {"member_id", "feature_base_date"})
+        @UniqueConstraint(name = "uk_lifecycle_member_date", columnNames = { "member_id", "feature_base_date" })
 })
-@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Lifecycle {
 
     @Id
