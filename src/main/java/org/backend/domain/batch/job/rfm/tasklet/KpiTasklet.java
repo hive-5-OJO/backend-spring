@@ -34,16 +34,16 @@ public class KpiTasklet implements Tasklet {
                     "Select " +
                     // CRR
                     "CASE " +
-                        "WHEN COUNT(CASE WHEN fm.is_vip_prev_month = 1 THEN 1 END) = 0 THEN 0.0 "+
+                        "WHEN COUNT(CASE WHEN fm.is_vip_prev_month = 'Y' THEN 1 END) = 0 THEN 0.0 "+
                         "ELSE CAST( COUNT("+
-                            "CASE WHEN a.type = 'VIP' AND fm.is_vip_prev_month = 1 THEN 1 END"+
+                            "CASE WHEN a.type = 'VIP' AND fm.is_vip_prev_month = 'Y' THEN 1 END"+
                             ") AS Decimal(10,4) )"+
-                            "/ COUNT(CASE WHEN fm.is_vip_prev_month = 1 THEN 1 END) "+
+                            "/ COUNT(CASE WHEN fm.is_vip_prev_month = 'Y' THEN 1 END) "+
                     "END AS crr, " +
                     // Churn Rate
                     "COALESCE("+
                         "CAST( COUNT("+
-                            "CASE WHEN fl.is_terminated_flag = 1 THEN 1 END" +
+                            "CASE WHEN fl.is_terminated_flag = 'Y' THEN 1 END" +
                         ") AS Decimal(10,4) ) "+
                         "/ NULLIF(COUNT(*), 0) "+
                     ", 0.0) AS churn_rate, "+
