@@ -17,17 +17,17 @@ public class CustomerFilterResponse {
     private String serviceName;
     private String mainCategoryName;
     private Integer usageMonths;
-    private String frequency;
+    private Long frequency;
     private String isVip;
 
     public CustomerFilterResponse(Long memberId, String name, String serviceName, String mainCategoryName,
-            LocalDateTime createdAt, Integer frequency, String isVip) {
+            LocalDateTime createdAt, Long frequency, String isVip) {
         this.memberId = memberId;
         this.name = name;
         this.serviceName = serviceName;
         this.mainCategoryName = mainCategoryName;
         this.usageMonths = createdAt != null ? (int) ChronoUnit.MONTHS.between(createdAt, LocalDateTime.now()) : 0;
-        this.frequency = frequency != null ? frequency.toString() : null;
+        this.frequency = frequency;
         this.isVip = isVip;
     }
 }

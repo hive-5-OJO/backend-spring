@@ -38,14 +38,14 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                         Expressions.nullExpression(String.class),
                         Expressions.nullExpression(String.class),
                         member.createdAt,
-                        rfm.frequency,
+                        com.querydsl.core.types.ExpressionUtils.as(JPAExpressions.select(advice.id.count()).from(advice).where(advice.member.eq(member)), "frequency"),
                         Expressions.nullExpression(String.class)))
                 .from(member)
                 .leftJoin(analysis).on(analysis.member.eq(member))
                 .leftJoin(rfm).on(rfm.member.eq(member))
                 .where(
                         segmentEq(analysis, request.getSegment()),
-                        frequencyEq(rfm, request.getFrequency()),
+                        frequencyEq(advice, member, request.getFrequency()),
                         categoryEq(advice, member, request.getCategoryId()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -58,7 +58,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 .leftJoin(rfm).on(rfm.member.eq(member))
                 .where(
                         segmentEq(analysis, request.getSegment()),
-                        frequencyEq(rfm, request.getFrequency()),
+                        frequencyEq(advice, member, request.getFrequency()),
                         categoryEq(advice, member, request.getCategoryId()))
                 .fetchOne();
 
@@ -71,15 +71,19 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         return StringUtils.hasText(segment) ? analysis.type.eq(segment) : null;
     }
 
-    private BooleanExpression frequencyEq(QRfm rfm, String frequency) {
+    private BooleanExpression frequencyEq(QAdvice advice, QMember member, String frequency) {
         if (!StringUtils.hasText(frequency)) {
             return null;
         }
-        try {
-            return rfm.frequency.eq(Integer.parseInt(frequency));
-        } catch (NumberFormatException e) {
-            return rfm.frequency.stringValue().eq(frequency);
-        }
+        
+        var countQuery = JPAExpressions.select(advice.id.count()).from(advice).where(advice.member.eq(member));
+        
+        return switch (frequency.toUpperCase()) {
+            case "LOW" -> Expressions.asNumber(countQuery).loe(2L);
+            case "MEDIUM" -> Expressions.asNumber(countQuery).between(3L, 5L);
+            case "HIGH" -> Expressions.asNumber(countQuery).goe(6L);
+            default -> null;
+        };
     }
 
     private BooleanExpression categoryEq(QAdvice advice, QMember member, Long categoryId) {
