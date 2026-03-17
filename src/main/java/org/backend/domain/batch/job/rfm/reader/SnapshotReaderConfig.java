@@ -24,8 +24,8 @@ public class SnapshotReaderConfig {
     @StepScope
     public JpaPagingItemReader<SnapshotWrapper> snapshotReader(
             @Value("#{jobParameters['baseMonth']}") String baseMonth) {
-        String base = baseMonth;
-        String last = calculateLastMonth(baseMonth);
+        String base = baseMonth.replace("-", "");
+        String last = calculateLastMonth(baseMonth).replace("-", "");
 
         return new JpaPagingItemReaderBuilder<SnapshotWrapper>()
                 .name("snapshotReader")
@@ -47,7 +47,8 @@ public class SnapshotReaderConfig {
     }
 
     public String calculateLastMonth(String baseMonth){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+        String pattern = baseMonth.contains("-") ? "yyyy-MM" : "yyyyMM";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
         YearMonth ym = YearMonth.parse(baseMonth, formatter);
         return ym.minusMonths(1).format(formatter);
     }
