@@ -155,6 +155,15 @@ public class AdviceTimelineService {
     }
 
     private Long formatSatisfactionScore(Long satisfactionScore) {
-        return satisfactionScore != null ? satisfactionScore : 0L;
+        if (satisfactionScore == null || satisfactionScore == 0) {
+            return 0L; // 미평가 유지
+        }
+        if (satisfactionScore < 1) {
+            return 1L;
+        }
+        if (satisfactionScore > 5) {
+            return 5L;
+        }
+        return satisfactionScore;
     }
 }
