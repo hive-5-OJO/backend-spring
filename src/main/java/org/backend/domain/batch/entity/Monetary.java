@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "feature_monetary", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_monetary_member_date", columnNames = {"member_id", "feature_base_date"})
+        @UniqueConstraint(name = "uk_monetary_member_date", columnNames = { "member_id", "feature_base_date" })
 })
 @Getter
 @Setter
@@ -51,12 +51,11 @@ public class Monetary {
     @Column(name = "prev_monthly_revenue", nullable = false)
     private Long prevMonthlyRevenue;
 
-//    @Column(name = "is_vip_prev_month", nullable = false)
-//    private Boolean vipPrevMonth;
+    // @Column(name = "is_vip_prev_month", nullable = false)
+    // private Boolean vipPrevMonth;
     @Convert(converter = org.hibernate.type.YesNoConverter.class)
     @Column(name = "is_vip_prev_month", nullable = false, length = 1)
     private Boolean vipPrevMonth;
-
 
     @Column(name = "avg_order_val", nullable = false)
     private Float avgOrderVal;

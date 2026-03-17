@@ -75,9 +75,10 @@ public class MemberLifecycleProcessor implements ItemProcessor<List<Member>, Lis
                 .signupDate(signupDate)
                 .memberLifetimeDays(lifetimeDays)
                 .isNewCustomerFlag(lifetimeDays <= 30)
-//                .isDormantFlag("DORMANT".equalsIgnoreCase(member.getStatus()))
-                // 마지막 활동 일자가 300일 넘는 고객을 휴먼 고객으로 저장
-                .isDormantFlag(daysSinceLastActivity >= 300)
+                // MEMBER 테이블의 STATUS가 DORMANT(휴면인 고객) 을 휴면 고객으로 저장
+                .isDormantFlag("DORMANT".equalsIgnoreCase(member.getStatus()))
+                // 마지막 활동 일자가 300일 넘는 고객을 휴면 고객으로 저장
+//                .isDormantFlag(daysSinceLastActivity >= 300)
                 .isTerminatedFlag("TERMINATED".equalsIgnoreCase(member.getStatus()))
                 .daysSinceLastActivity(daysSinceLastActivity)
                 .contractEndDaysLeft(contractEndDaysLeft)

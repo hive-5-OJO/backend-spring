@@ -41,36 +41,38 @@ public class ChannelService {
         return ChannelResponse.from(channelRepository.save(channel));
     }
 
-    public List<ChannelResponse> getAllChannels() {
-        return channelRepository.findAll().stream()
+    public List<ChannelResponse> getAllChannels(Long adminId) {
+        return channelRepository.findAllByAdminId(adminId).stream()
                 .map(ChannelResponse::from)
                 .toList();
     }
 
-    public ChannelResponse getChannel(Long channelId) {
-        return ChannelResponse.from(findChannelWithMembersById(channelId));
+    public ChannelResponse getChannel(Long adminId, Long channelId) {
+        return ChannelResponse.from(findChannelWithMembersByIdAndAdminId(channelId, adminId));
     }
 
     @Transactional
-    public ChannelResponse updateChannel(Long channelId, ChannelUpdateRequest request) {
-        Channel channel = findChannelWithMembersById(channelId);
+    public ChannelResponse updateChannel(Long adminId, Long channelId, ChannelUpdateRequest request) {
+        Channel channel = findChannelWithMembersByIdAndAdminId(channelId, adminId);
         channel.update(request.getName(), request.getDescription(), request.getStatus());
         return ChannelResponse.from(channel);
     }
 
     @Transactional
-    public void deleteChannel(Long channelId) {
-        // cascade = ALL이라 channelMembers 함께 삭제되므로 fetch 불필요
+    public void deleteChannel(Long adminId, Long channelId) {
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHANNEL_NOT_FOUND));
+        if (!channel.getAdminId().equals(adminId)) {
+            throw new CustomException(ErrorCode.CHANNEL_NOT_FOUND);
+        }
         channelRepository.delete(channel);
     }
 
     // ── 채널 멤버 관리 ──────────────────────────────────────────
 
     @Transactional
-    public List<ChannelMemberResponse> addMembers(Long channelId, ChannelMemberRequest request) {
-        Channel channel = findChannelWithMembersById(channelId);
+    public List<ChannelMemberResponse> addMembers(Long adminId, Long channelId, ChannelMemberRequest request) {
+        Channel channel = findChannelWithMembersByIdAndAdminId(channelId, adminId);
         List<Long> memberIds = request.getMemberIds();
 
         Set<Long> existingMemberIds = memberRepository.findExistingIds(memberIds);
@@ -96,8 +98,8 @@ public class ChannelService {
                 .toList();
     }
 
-    public List<ChannelMemberResponse> getMembers(Long channelId) {
-        checkChannelExists(channelId);
+    public List<ChannelMemberResponse> getMembers(Long adminId, Long channelId) {
+        checkChannelExistsAndOwned(channelId, adminId);
         return channelMemberRepository.findByChannelId(channelId).stream()
                 .map(ChannelMemberResponse::from)
                 .toList();
@@ -105,8 +107,8 @@ public class ChannelService {
 
     // 단일 고객 제거
     @Transactional
-    public void removeMember(Long channelId, Long memberId) {
-        checkChannelExists(channelId);
+    public void removeMember(Long adminId, Long channelId, Long memberId) {
+        checkChannelExistsAndOwned(channelId, adminId);
         ChannelMember channelMember = channelMemberRepository
                 .findByChannelIdAndMemberId(channelId, memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHANNEL_MEMBER_NOT_FOUND));
@@ -115,8 +117,8 @@ public class ChannelService {
 
     // 여러 고객 한번에 제거
     @Transactional
-    public void removeMembers(Long channelId, ChannelMemberRequest request) {
-        checkChannelExists(channelId);
+    public void removeMembers(Long adminId, Long channelId, ChannelMemberRequest request) {
+        checkChannelExistsAndOwned(channelId, adminId);
         List<Long> memberIds = request.getMemberIds();
 
         Set<Long> existingInChannel = channelMemberRepository.findExistingMemberIds(channelId, memberIds);
@@ -132,20 +134,20 @@ public class ChannelService {
 
     // 채널 전체 비우기 (채널은 유지, 고객 목록만 초기화)
     @Transactional
-    public void clearMembers(Long channelId) {
-        checkChannelExists(channelId);
+    public void clearMembers(Long adminId, Long channelId) {
+        checkChannelExistsAndOwned(channelId, adminId);
         channelMemberRepository.deleteAllByChannelId(channelId);
     }
 
     // ── 공통 ────────────────────────────────────────────────────
 
-    private Channel findChannelWithMembersById(Long channelId) {
-        return channelRepository.findByIdWithMembers(channelId)
+    private Channel findChannelWithMembersByIdAndAdminId(Long channelId, Long adminId) {
+        return channelRepository.findByIdAndAdminIdWithMembers(channelId, adminId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CHANNEL_NOT_FOUND));
     }
 
-    private void checkChannelExists(Long channelId) {
-        if (!channelRepository.existsById(channelId)) {
+    private void checkChannelExistsAndOwned(Long channelId, Long adminId) {
+        if (!channelRepository.existsByIdAndAdminId(channelId, adminId)) {
             throw new CustomException(ErrorCode.CHANNEL_NOT_FOUND);
         }
     }

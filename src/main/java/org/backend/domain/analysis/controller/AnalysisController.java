@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.backend.common.CommonResponse;
 import org.backend.domain.analysis.dto.*;
 import org.backend.domain.analysis.service.AnalysisService;
+import org.backend.domain.analysis.service.DashboardService;
 import org.backend.domain.analysis.service.KpiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
 public class AnalysisController {
     private final AnalysisService analysisService;
     private final KpiService kpiService;
+    private final DashboardService dashboardService;
 
     // 특정 고객 LTV 조회
     @GetMapping("/ltv/{memberId}")
@@ -29,11 +31,11 @@ public class AnalysisController {
         return ResponseEntity.ok(analysisService.getAnalysisSummary(memberId));
     }
 
-    // 대시보드
+    // 대시보드 요약 (Cards, DailyStats, Segments)
     @GetMapping("/dashboard")
-    public ResponseEntity<CommonResponse<List<org.backend.domain.analysis.dto.DashboardKpiResponseDto>>> getDashboard() {
-        List<org.backend.domain.analysis.dto.DashboardKpiResponseDto> data = kpiService.getDashboardKpis();
-        return ResponseEntity.ok(CommonResponse.success(data, "대시보드 조회 성공"));
+    public ResponseEntity<CommonResponse<DashboardSummaryResponseDto>> getDashboardSummary() {
+        DashboardSummaryResponseDto data = dashboardService.getDashboardSummary();
+        return ResponseEntity.ok(CommonResponse.success(data, "대시보드 요약 조회 성공"));
     }
 
     // 대시보드 - 세그먼트
