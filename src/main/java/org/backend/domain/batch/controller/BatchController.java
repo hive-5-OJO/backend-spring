@@ -5,6 +5,7 @@ import org.backend.common.CommonResponse;
 import org.backend.domain.batch.dto.response.BatchHistoryListResponse;
 import org.backend.domain.batch.dto.response.BatchStatusDetailResponse;
 import org.backend.domain.batch.dto.response.MemberFeatureResponse;
+import org.backend.domain.batch.scheduler.MemberFeatureScheduler;
 import org.backend.domain.batch.service.BatchResetService;
 import org.backend.domain.batch.service.BatchService;
 import org.backend.domain.batch.service.MemberFeatureService;
@@ -40,6 +41,8 @@ public class BatchController {
     private final Job postAnalysisJob;
     private final BatchResetService batchResetService;
     private final MemberFeatureService memberFeatureService;
+
+    private final MemberFeatureScheduler memberFeatureScheduler;
 
     // 1. 배치 실행
     @PostMapping("/run")
@@ -170,5 +173,10 @@ public class BatchController {
         return ResponseEntity.ok(CommonResponse.success(null, msg));
     }
 
-
+    // 스케줄러 테스트
+    @PostMapping("/test/pipeline")
+    public String testPipeline() {
+        memberFeatureScheduler.runMemberFeatureJob(); // 스케줄러 메서드 직접 호출
+        return "Full Pipeline Started Check Logs!";
+    }
 }
