@@ -37,24 +37,28 @@ public class ChannelController {
 
     @GetMapping
     public CommonResponse<List<ChannelResponse>> getAllChannels() {
-        return CommonResponse.success(channelService.getAllChannels(), "채널 목록 조회 성공");
+        Long adminId = getCurrentAdminId();
+        return CommonResponse.success(channelService.getAllChannels(adminId), "채널 목록 조회 성공");
     }
 
     @GetMapping("/{channelId}")
     public CommonResponse<ChannelResponse> getChannel(@PathVariable Long channelId) {
-        return CommonResponse.success(channelService.getChannel(channelId), "채널 조회 성공");
+        Long adminId = getCurrentAdminId();
+        return CommonResponse.success(channelService.getChannel(adminId, channelId), "채널 조회 성공");
     }
 
     @PatchMapping("/{channelId}")
     public CommonResponse<ChannelResponse> updateChannel(
             @PathVariable Long channelId,
             @RequestBody ChannelUpdateRequest request) {
-        return CommonResponse.success(channelService.updateChannel(channelId, request), "채널이 수정되었습니다.");
+        Long adminId = getCurrentAdminId();
+        return CommonResponse.success(channelService.updateChannel(adminId, channelId, request), "채널이 수정되었습니다.");
     }
 
     @DeleteMapping("/{channelId}")
     public CommonResponse<Void> deleteChannel(@PathVariable Long channelId) {
-        channelService.deleteChannel(channelId);
+        Long adminId = getCurrentAdminId();
+        channelService.deleteChannel(adminId, channelId);
         return CommonResponse.success(null, "채널이 삭제되었습니다.");
     }
 
@@ -64,12 +68,14 @@ public class ChannelController {
     public CommonResponse<List<ChannelMemberResponse>> addMembers(
             @PathVariable Long channelId,
             @RequestBody ChannelMemberRequest request) {
-        return CommonResponse.success(channelService.addMembers(channelId, request), "고객이 채널에 추가되었습니다.");
+        Long adminId = getCurrentAdminId();
+        return CommonResponse.success(channelService.addMembers(adminId, channelId, request), "고객이 채널에 추가되었습니다.");
     }
 
     @GetMapping("/{channelId}/members")
     public CommonResponse<List<ChannelMemberResponse>> getMembers(@PathVariable Long channelId) {
-        return CommonResponse.success(channelService.getMembers(channelId), "채널 고객 목록 조회 성공");
+        Long adminId = getCurrentAdminId();
+        return CommonResponse.success(channelService.getMembers(adminId, channelId), "채널 고객 목록 조회 성공");
     }
 
     // 단일 고객 제거
@@ -77,7 +83,8 @@ public class ChannelController {
     public CommonResponse<Void> removeMember(
             @PathVariable Long channelId,
             @PathVariable Long memberId) {
-        channelService.removeMember(channelId, memberId);
+        Long adminId = getCurrentAdminId();
+        channelService.removeMember(adminId, channelId, memberId);
         return CommonResponse.success(null, "채널에서 고객이 제거되었습니다.");
     }
 
@@ -86,14 +93,16 @@ public class ChannelController {
     public CommonResponse<Void> removeMembers(
             @PathVariable Long channelId,
             @RequestBody ChannelMemberRequest request) {
-        channelService.removeMembers(channelId, request);
+        Long adminId = getCurrentAdminId();
+        channelService.removeMembers(adminId, channelId, request);
         return CommonResponse.success(null, "채널에서 고객들이 제거되었습니다.");
     }
 
     // 채널 전체 비우기 (채널 유지, 고객 목록만 초기화)
     @DeleteMapping("/{channelId}/members/all")
     public CommonResponse<Void> clearMembers(@PathVariable Long channelId) {
-        channelService.clearMembers(channelId);
+        Long adminId = getCurrentAdminId();
+        channelService.clearMembers(adminId, channelId);
         return CommonResponse.success(null, "채널 고객 목록이 초기화되었습니다.");
     }
 }
