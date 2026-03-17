@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
 
-    Optional<Analysis> findByMemberIdOrderByCreatedAtDesc(Long memberId);
+    Optional<Analysis> findFirstByMemberIdOrderByCreatedAtDesc(Long memberId);
 
     @Query("SELECT a FROM Analysis a JOIN FETCH a.member")
     List<Analysis> findAllWithMember();

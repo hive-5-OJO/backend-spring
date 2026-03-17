@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface RfmRepository extends JpaRepository<Rfm, Long> {
-    Optional<Rfm> findByMemberIdOrderByUpdatedAtDesc(Long memberId);
+    Optional<Rfm> findFirstByMemberIdOrderByUpdatedAtDesc(Long memberId);
 }
