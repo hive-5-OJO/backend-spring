@@ -56,20 +56,20 @@ public class MemberFeatureScheduler {
                 log.error("########## [SCHEDULE] STEP 2 FAILED! STOPPING PIPELINE ##########");
                 return;
             }
-//
-//            // 3. 파이썬 다차원 분석 호출 (LTV, Churn, Recommend)
-//            log.info(">>> Step 3: Python Analysis Pipeline Start");
-//            restTemplate.getForEntity(ANALYTICS_URL, String.class);
-//
-//            // 4. KPI 및 스냅샷 생성
-//            log.info(">>> Step 4: KPI Post-Analysis Job Start");
-//            JobExecution execution4 = jobLauncher.run(postAnalysisJob, new JobParametersBuilder()
-//                    .addString("baseMonth", targetMonth)
-//                    .addLong("run.id", System.currentTimeMillis()).toJobParameters());
-//            if (execution4.getStatus() != BatchStatus.COMPLETED) {
-//                log.error("########## [SCHEDULE] STEP 4 FAILED! STOPPING PIPELINE ##########");
-//                return;
-//            }
+
+            // 3. 파이썬 다차원 분석 호출 (LTV, Churn, Recommend)
+            log.info(">>> Step 3: Python Analysis Pipeline Start");
+            restTemplate.getForEntity(ANALYTICS_URL, String.class);
+
+            // 4. KPI 및 스냅샷 생성
+            log.info(">>> Step 4: KPI Post-Analysis Job Start");
+            JobExecution execution4 = jobLauncher.run(postAnalysisJob, new JobParametersBuilder()
+                    .addString("baseMonth", targetMonth)
+                    .addLong("run.id", System.currentTimeMillis()).toJobParameters());
+            if (execution4.getStatus() != BatchStatus.COMPLETED) {
+                log.error("########## [SCHEDULE] STEP 4 FAILED! STOPPING PIPELINE ##########");
+                return;
+            }
 
             log.info("########## ALL BATCH PROCESS COMPLETED ##########");
         } catch (Exception e) {
