@@ -32,6 +32,19 @@ public class ChannelController {
 
         Object principal = authentication.getPrincipal();
 
+        // 1) 현재 JWT 필터 구조: principal = adminId(String)
+        if (principal instanceof String principalStr) {
+            if ("anonymousUser".equals(principalStr)) {
+                throw new CustomException(ErrorCode.UNAUTHORIZED);
+            }
+
+            try {
+                return Long.parseLong(principalStr);
+            } catch (NumberFormatException e) {
+                throw new CustomException(ErrorCode.UNAUTHORIZED);
+            }
+        }
+        // 2) 혹시 이후 AdminPrincipal 구조로 바뀌어도 대응 가능
         if (principal instanceof AdminPrincipal adminPrincipal) {
             return adminPrincipal.getAdminId();
         }
