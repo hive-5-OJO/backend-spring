@@ -117,6 +117,8 @@ public class AnalysisService {
                         if (latest == null)
                                 return new RfmSegmentResponseDto(0L, List.of());
                         baseMonth = latest.format(DateTimeFormatter.ofPattern("yyyyMM"));
+                } else {
+                        baseMonth = baseMonth.replace("-", "");
                 }
 
                 List<RfmSegmentResponseDto.SegmentDetail> segmentDetailList = analysisRepository
