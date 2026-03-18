@@ -19,6 +19,7 @@ public class AdviceTimelineFormatter {
     private static final NumberFormat NUMBER_FORMAT =
             NumberFormat.getNumberInstance(Locale.KOREA);
 
+
     /**
      * 예:
      * 연체 납부 확인(납부/연체/미납): base_month=202501, due=2025-01-05, billed=86500, paid_at=2025-01-13T20:00:06
@@ -41,6 +42,10 @@ public class AdviceTimelineFormatter {
      */
     private static final Pattern BILLING_PAID_PATTERN = Pattern.compile(
             "^(.*?):\\s*billed=(\\d+),\\s*paid_at=([0-9T:-]+)\\s*(?:/\\s*(.*))?$"
+    );
+
+    private static final Pattern OVERDUE_RENOTICE_PATTERN = Pattern.compile(
+            "^(.*?):\\s*base_month=([0-9-]+),\\s*overdue=([0-9,]+원?),\\s*(.*)$"
     );
 
     public String formatDirection(String direction) {
@@ -74,6 +79,11 @@ public class AdviceTimelineFormatter {
         }
 
         formatted = tryFormatBillingPaidContent(normalized);
+        if (formatted != null) {
+            return removeTrailingProductInfo(formatted);
+        }
+
+        formatted = tryFormatOverdueRenoticeContent(normalized);
         if (formatted != null) {
             return removeTrailingProductInfo(formatted);
         }
@@ -189,6 +199,27 @@ public class AdviceTimelineFormatter {
 
         return title + ": " + formattedBody;
     }
+
+    private String tryFormatOverdueRenoticeContent(String raw) {
+        Matcher matcher = OVERDUE_RENOTICE_PATTERN.matcher(raw);
+
+        if (!matcher.matches()) {
+            return null;
+        }
+
+        String title = matcher.group(1).trim();
+        String baseMonth = matcher.group(2).trim();
+        String overdue = matcher.group(3).trim();
+        String guideText = matcher.group(4).trim();
+
+        String result = String.format(
+                "%s: %s 기준 미납금액은 %s이며, %s했습니다.",
+                title, baseMonth, overdue, guideText
+        );
+
+        return result;
+    }
+
 
     private boolean containsAny(String source, String... keywords) {
         for (String keyword : keywords) {
