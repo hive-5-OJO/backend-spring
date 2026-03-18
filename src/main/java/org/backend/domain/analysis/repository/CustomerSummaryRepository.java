@@ -70,7 +70,7 @@ public interface CustomerSummaryRepository extends JpaRepository<Member, Long> {
         LEFT JOIN feature_consultation fc ON fc.member_id = m.member_id
         LEFT JOIN analysis a ON a.member_id = m.member_id
         """,
-            countQuery = "SELECT COUNT(*) FROM member",
+            countQuery = "SELECT COUNT(*) FROM member WHERE status != 'TERMINATED' AND created_at <= :endDate",
             nativeQuery = true)
     Page<CustomerSummaryProjection> findCustomerSummary(Pageable pageable);
 
