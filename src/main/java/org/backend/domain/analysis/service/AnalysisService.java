@@ -24,7 +24,7 @@ public class AnalysisService {
 
         // 특정 고객 LTV 조회 - 고객 1인당 평균 구매단가 * 평균 구매 빈도 * 평균 고객 수명 => 계산은 파이썬에서 진행
         public LtvResponseDto getLtvDetail(Long memberId) {
-                return analysisRepository.findByMemberIdOrderByCreatedAtDesc(memberId)
+                return analysisRepository.findFirstByMemberIdOrderByCreatedAtDesc(memberId)
                                 .map(a -> new LtvResponseDto(
                                                 a.getMember().getId(), a.getLtv(), a.getLifecycleStage()))
                                 .orElseThrow(() -> new EntityNotFoundException("분석 데이터를 찾을 수 없습니다."));
@@ -32,7 +32,7 @@ public class AnalysisService {
 
         // 고객 통합 분석 요약
         public AnalysisSummaryResponseDto getAnalysisSummary(Long memberId) {
-                return analysisRepository.findByMemberIdOrderByCreatedAtDesc(memberId)
+                return analysisRepository.findFirstByMemberIdOrderByCreatedAtDesc(memberId)
                                 .map(a -> new AnalysisSummaryResponseDto(
                                                 a.getMember().getId(), a.getType(), a.getRfmScore(), a.getLtv(),
                                                 a.getLifecycleStage()))
@@ -88,18 +88,22 @@ public class AnalysisService {
 
         // 사용자별 rfm 조회
         public RfmResponseDto getRfm(Long memberId) {
-                Rfm rfm = rfmRepository.findByMemberIdOrderByUpdatedAtDesc(memberId)
+                Rfm rfm = rfmRepository.findFirstByMemberIdOrderByUpdatedAtDesc(memberId)
                                 .orElseThrow(() -> new EntityNotFoundException("RFM 상세 데이터를 찾을 수 없습니다."));
 
-                Analysis analysis = analysisRepository.findByMemberIdOrderByCreatedAtDesc(memberId)
+                Analysis analysis = analysisRepository.findFirstByMemberIdOrderByCreatedAtDesc(memberId)
                                 .orElseThrow(() -> new EntityNotFoundException("분석 요약 데이터를 찾을 수 없습니다."));
 
                 RfmResponseDto.RfmDetail detail = new RfmResponseDto.RfmDetail(
-                                rfm.getRecency(),
-                                rfm.getFrequency(),
-                                rfm.getMonetary(),
-                                rfm.getUpdatedAt(),
-                                analysis.getRfmScore());
+                        rfm.getRecency(),
+                        rfm.getFrequency(),
+                        rfm.getMonetary(),
+                        rfm.getUpdatedAt(),
+                        analysis.getRfmScore(),
+                        analysis.getRScore(),
+                        analysis.getFScore(),
+                        analysis.getMScore(),
+                        analysis.getType());
 
                 return new RfmResponseDto(
                                 rfm.getMemberId(), detail);

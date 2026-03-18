@@ -88,21 +88,29 @@ public class AdviceStatisticsService {
         LocalDateTime end = to != null ? to.atTime(23, 59, 59) : LocalDateTime.now();
 
         Map<String, Object> summary = repo.findSatisfaction(start, end);
-        Double score = ((Number) summary.get("averageScore")).doubleValue();
-        Long cnt = ((Number) summary.get("totalCount")).longValue();
+        Double score = summary.get("averageScore") != null ? ((Number) summary.get("averageScore")).doubleValue() : 0.0;
+        Long cnt = summary.get("totalCount") != null ? ((Number) summary.get("totalCount")).longValue() : 0L;
 
         List<Object[]> rawDistribution = repo.findScoreDistribution(start, end);
 
-        Map<Long, Long> scoreMap = rawDistribution.stream().collect(
+        Map<Long, Long> scoreMap = rawDistribution.stream()
+                .filter(row -> row[0] != null).collect(
                 Collectors.toMap(
                         row -> ((Number) row[0]).longValue(),
                         row -> ((Number) row[1]).longValue()));
 
         // 없는 거는 0으로 처리
-        List<AdviceSatisfactionResponse.SatisfactionScoreCount> dis = LongStream.rangeClosed(1, 10)
-                .mapToObj(s -> new AdviceSatisfactionResponse.SatisfactionScoreCount(
-                        s,
-                        scoreMap.getOrDefault(s, 0L)))
+        List<AdviceSatisfactionResponse.SatisfactionScoreCount> dis = LongStream.rangeClosed(1, 5)
+                .mapToObj(s -> {
+                    long score1 = s * 2 - 1; // 홀수 (1, 3, 5, 7, 9)
+                    long score2 = s * 2; // 짝수 (2, 4, 6, 8, 10)
+
+                    long combinedCount = scoreMap.getOrDefault(score1, 0L) + scoreMap.getOrDefault(score2, 0L);
+
+                    return new AdviceSatisfactionResponse.SatisfactionScoreCount(
+                            s,
+                            combinedCount);
+                })
                 .toList();
 
         return new AdviceSatisfactionResponse(score, cnt, dis);

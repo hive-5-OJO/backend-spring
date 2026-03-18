@@ -19,7 +19,9 @@ public class KpiService {
         private final RfmKpiRepository rfmKpiRepository;
 
         public RfmKpiResponseDto getKpi(String baseMonth) {
-                RfmKpi rfmKpi = rfmKpiRepository.findByBaseMonth(baseMonth)
+                String formattedMonth = (baseMonth != null) ? baseMonth.replace("-", "") : "";
+
+                RfmKpi rfmKpi = rfmKpiRepository.findByBaseMonth(formattedMonth)
                                 .orElseThrow(() -> new CustomException(ErrorCode.KPI_NOT_FOUND));
                 return new RfmKpiResponseDto(
                                 rfmKpi.getBaseMonth(),
