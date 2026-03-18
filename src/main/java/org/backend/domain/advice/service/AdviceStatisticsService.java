@@ -88,7 +88,9 @@ public class AdviceStatisticsService {
         LocalDateTime end = to != null ? to.atTime(23, 59, 59) : LocalDateTime.now();
 
         Map<String, Object> summary = repo.findSatisfaction(start, end);
-        Double score = summary.get("averageScore") != null ? ((Number) summary.get("averageScore")).doubleValue() : 0.0;
+
+        Double rawAvg = summary.get("averageScore") != null ? ((Number) summary.get("averageScore")).doubleValue() : 0.0;
+        Double score = Math.round((rawAvg / 2.0) * 100) / 100.0;
         Long cnt = summary.get("totalCount") != null ? ((Number) summary.get("totalCount")).longValue() : 0L;
 
         List<Object[]> rawDistribution = repo.findScoreDistribution(start, end);

@@ -92,7 +92,7 @@ public interface AdviceStatisticsRepository extends JpaRepository<Advice, Long> 
 
     // 2. 전체 요약
     @Query(value = """
-                SELECT COUNT(*) as totalCount,
+                SELECT COUNT(satisfaction_score) as totalCount,
                        COALESCE(ROUND(AVG(satisfaction_score), 2), 0.0) as averageScore
                 FROM advice
                 WHERE created_at BETWEEN :start AND :end
