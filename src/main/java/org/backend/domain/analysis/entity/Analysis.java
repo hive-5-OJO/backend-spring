@@ -33,4 +33,13 @@ public class Analysis {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "r_score")
+    private Integer rScore;
+
+    @Column(name = "f_score")
+    private Integer fScore;
+
+    @Column(name = "m_score")
+    private Integer mScore;
 }

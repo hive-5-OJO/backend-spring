@@ -11,6 +11,11 @@ public record RfmResponseDto (
         int frequency,
         Long monetary,
         LocalDateTime updatedAt,
-        int rfmScore
+        int rfmScore,
+
+        Integer rScore,
+        Integer fScore,
+        Integer mScore,
+        String segmentType
     ){}
 }

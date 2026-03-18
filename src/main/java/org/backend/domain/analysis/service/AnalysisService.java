@@ -95,11 +95,15 @@ public class AnalysisService {
                                 .orElseThrow(() -> new EntityNotFoundException("분석 요약 데이터를 찾을 수 없습니다."));
 
                 RfmResponseDto.RfmDetail detail = new RfmResponseDto.RfmDetail(
-                                rfm.getRecency(),
-                                rfm.getFrequency(),
-                                rfm.getMonetary(),
-                                rfm.getUpdatedAt(),
-                                analysis.getRfmScore());
+                        rfm.getRecency(),
+                        rfm.getFrequency(),
+                        rfm.getMonetary(),
+                        rfm.getUpdatedAt(),
+                        analysis.getRfmScore(),
+                        analysis.getRScore(),
+                        analysis.getFScore(),
+                        analysis.getMScore(),
+                        analysis.getType());
 
                 return new RfmResponseDto(
                                 rfm.getMemberId(), detail);
