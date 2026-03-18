@@ -9,6 +9,7 @@ import org.backend.domain.advice.dto.AdviceOutboundSummaryRow;
 import org.backend.domain.advice.dto.AdvicePromotionStatItem;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -87,12 +88,6 @@ public class AdviceStatisticsService {
         LocalDateTime start = from != null ? from.atStartOfDay() : LocalDateTime.now().minusMonths(1);
         LocalDateTime end = to != null ? to.atTime(23, 59, 59) : LocalDateTime.now();
 
-        Map<String, Object> summary = repo.findSatisfaction(start, end);
-
-        Double rawAvg = summary.get("averageScore") != null ? ((Number) summary.get("averageScore")).doubleValue() : 0.0;
-        Double score = Math.round((rawAvg / 2.0) * 100) / 100.0;
-        Long cnt = summary.get("totalCount") != null ? ((Number) summary.get("totalCount")).longValue() : 0L;
-
         List<Object[]> rawDistribution = repo.findScoreDistribution(start, end);
 
         Map<Long, Long> scoreMap = rawDistribution.stream()
@@ -101,19 +96,25 @@ public class AdviceStatisticsService {
                         row -> ((Number) row[0]).longValue(),
                         row -> ((Number) row[1]).longValue()));
 
-        // 없는 거는 0으로 처리
-        List<AdviceSatisfactionResponse.SatisfactionScoreCount> dis = LongStream.rangeClosed(1, 5)
-                .mapToObj(s -> {
-                    long score1 = s * 2 - 1; // 홀수 (1, 3, 5, 7, 9)
-                    long score2 = s * 2; // 짝수 (2, 4, 6, 8, 10)
+        List<AdviceSatisfactionResponse.SatisfactionScoreCount> dis = new ArrayList<>();
 
-                    long combinedCount = scoreMap.getOrDefault(score1, 0L) + scoreMap.getOrDefault(score2, 0L);
+        long cnt = 0;
+        double weightedSum = 0;
 
-                    return new AdviceSatisfactionResponse.SatisfactionScoreCount(
-                            s,
-                            combinedCount);
-                })
-                .toList();
+        for (long s = 1; s <= 5; s++) {
+            long score1 = s * 2 - 1; // 홀수 (1, 3, 5, 7, 9)
+            long score2 = s * 2;     // 짝수 (2, 4, 6, 8, 10)
+
+            long combinedCount = scoreMap.getOrDefault(score1, 0L) + scoreMap.getOrDefault(score2, 0L);
+
+            dis.add(new AdviceSatisfactionResponse.SatisfactionScoreCount(s, combinedCount));
+
+            cnt += combinedCount;
+            weightedSum += (s * combinedCount);
+        }
+
+        Double rawAvg  = cnt > 0 ? weightedSum / cnt : 0.0;
+        Double score = Math.round(rawAvg  * 100) / 100.0;
 
         return new AdviceSatisfactionResponse(score, cnt, dis);
     }
