@@ -40,7 +40,9 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                         Expressions.nullExpression(String.class),
                         Expressions.nullExpression(String.class),
                         member.createdAt,
-                        com.querydsl.core.types.ExpressionUtils.as(JPAExpressions.select(advice.id.count()).from(advice).where(advice.member.eq(member)), "frequency"),
+                        com.querydsl.core.types.ExpressionUtils.as(
+                                JPAExpressions.select(advice.id.count()).from(advice).where(advice.member.eq(member)),
+                                "frequency"),
                         analysis.type))
                 .from(member)
                 .leftJoin(analysis).on(analysis.member.eq(member))
@@ -70,16 +72,33 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
     }
 
     private BooleanExpression segmentEq(QAnalysis analysis, String segment) {
-        return StringUtils.hasText(segment) ? analysis.type.eq(segment) : null;
+        if (!StringUtils.hasText(segment)) {
+            return null;
+        }
+
+        String upper = segment.toUpperCase();
+        String korean = switch (upper) {
+            case "VIP"    -> "VIP";
+            case "LOYAL"  -> "잠재 VIP";
+            case "COMMON", "일반" -> "일반";
+            case "RISK"   -> "이탈 우려";
+            case "LOST"   -> "이탈";
+            default       -> null;
+        };
+        if (korean != null && !korean.equals(upper)) {
+
+            return analysis.type.equalsIgnoreCase(upper).or(analysis.type.eq(korean));
+        }
+        return analysis.type.equalsIgnoreCase(upper);
     }
 
     private BooleanExpression frequencyEq(QAdvice advice, QMember member, String frequency) {
         if (!StringUtils.hasText(frequency)) {
             return null;
         }
-        
+
         var countQuery = JPAExpressions.select(advice.id.count()).from(advice).where(advice.member.eq(member));
-        
+
         return switch (frequency.toUpperCase()) {
             case "LOW" -> Expressions.asNumber(countQuery).loe(2L);
             case "MEDIUM" -> Expressions.asNumber(countQuery).between(3L, 5L);
@@ -92,14 +111,13 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         if (categoryId == null) {
             return null;
         }
-        
+
         org.backend.domain.advice.entity.QCategories category = org.backend.domain.advice.entity.QCategories.categories;
         return member.id.in(
                 JPAExpressions
                         .select(advice.member.id)
                         .from(advice)
                         .join(advice.category, category)
-                        .where(category.id.eq(categoryId).or(category.parentId.eq(categoryId)))
-        );
+                        .where(category.id.eq(categoryId).or(category.parentId.eq(categoryId))));
     }
 }
