@@ -100,10 +100,17 @@ public class AdviceStatisticsService {
                         row -> ((Number) row[1]).longValue()));
 
         // 없는 거는 0으로 처리
-        List<AdviceSatisfactionResponse.SatisfactionScoreCount> dis = LongStream.rangeClosed(1, 10)
-                .mapToObj(s -> new AdviceSatisfactionResponse.SatisfactionScoreCount(
-                        s,
-                        scoreMap.getOrDefault(s, 0L)))
+        List<AdviceSatisfactionResponse.SatisfactionScoreCount> dis = LongStream.rangeClosed(1, 5)
+                .mapToObj(s -> {
+                    long score1 = s * 2 - 1; // 홀수 (1, 3, 5, 7, 9)
+                    long score2 = s * 2; // 짝수 (2, 4, 6, 8, 10)
+
+                    long combinedCount = scoreMap.getOrDefault(score1, 0L) + scoreMap.getOrDefault(score2, 0L);
+
+                    return new AdviceSatisfactionResponse.SatisfactionScoreCount(
+                            s,
+                            combinedCount);
+                })
                 .toList();
 
         return new AdviceSatisfactionResponse(score, cnt, dis);
