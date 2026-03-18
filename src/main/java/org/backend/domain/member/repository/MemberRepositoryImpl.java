@@ -109,19 +109,6 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
     }
 
     // 카테고리 다중 IN 조건
-//    private BooleanExpression categoryIn(QAdvice advice, QMember member, List<Long> categoryIds) {
-//        if (CollectionUtils.isEmpty(categoryIds)) return null;
-//
-//        QCategories category = QCategories.categories;
-//        return member.id.in(
-//                JPAExpressions
-//                        .select(advice.member.id)
-//                        .from(advice)
-//                        .join(advice.category, category)
-//                        .where(category.id.in(categoryIds)
-//                                .or(category.parentId.in(categoryIds)))
-//        );
-//    }
     private BooleanExpression categoryIn(QAdvice advice, QMember member, List<Long> categoryIds) {
         if (CollectionUtils.isEmpty(categoryIds)) return null;
 
