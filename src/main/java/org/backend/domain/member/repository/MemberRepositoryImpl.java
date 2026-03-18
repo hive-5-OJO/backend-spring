@@ -7,6 +7,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.backend.domain.advice.entity.QAdvice;
+import org.backend.domain.advice.entity.QCategories;
 import org.backend.domain.analysis.entity.QAnalysis;
 import org.backend.domain.analysis.entity.QRfm;
 import org.backend.domain.member.dto.CustomerFilterRequest;
@@ -15,8 +16,9 @@ import org.backend.domain.member.entity.QMember;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.util.StringUtils;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -40,15 +42,20 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                         Expressions.nullExpression(String.class),
                         Expressions.nullExpression(String.class),
                         member.createdAt,
-                        com.querydsl.core.types.ExpressionUtils.as(JPAExpressions.select(advice.id.count()).from(advice).where(advice.member.eq(member)), "frequency"),
+                        com.querydsl.core.types.ExpressionUtils.as(
+                                JPAExpressions.select(advice.id.count())
+                                        .from(advice)
+                                        .where(advice.member.eq(member)),
+                                "frequency"),
                         analysis.type))
                 .from(member)
                 .leftJoin(analysis).on(analysis.member.eq(member))
                 .leftJoin(rfm).on(rfm.member.eq(member))
                 .where(
-                        segmentEq(analysis, request.getSegment()),
-                        frequencyEq(advice, member, request.getFrequency()),
-                        categoryEq(advice, member, request.getCategoryId()))
+                        segmentIn(analysis, request.getSegments()),
+                        frequencyIn(advice, member, request.getFrequencies()),
+                        categoryIn(advice, member, request.getCategoryIds())
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -59,9 +66,10 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 .leftJoin(analysis).on(analysis.member.eq(member))
                 .leftJoin(rfm).on(rfm.member.eq(member))
                 .where(
-                        segmentEq(analysis, request.getSegment()),
-                        frequencyEq(advice, member, request.getFrequency()),
-                        categoryEq(advice, member, request.getCategoryId()))
+                        segmentIn(analysis, request.getSegments()),
+                        frequencyIn(advice, member, request.getFrequencies()),
+                        categoryIn(advice, member, request.getCategoryIds())
+                )
                 .fetchOne();
 
         long total = totalValue != null ? totalValue : 0L;
@@ -69,37 +77,73 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         return new PageImpl<>(content, pageable, total);
     }
 
-    private BooleanExpression segmentEq(QAnalysis analysis, String segment) {
-        return StringUtils.hasText(segment) ? analysis.type.eq(segment) : null;
+    // 세그먼트 다중 IN 조건
+    private BooleanExpression segmentIn(QAnalysis analysis, List<String> segments) {
+        if (CollectionUtils.isEmpty(segments)) return null;
+        return analysis.type.in(segments);
     }
 
-    private BooleanExpression frequencyEq(QAdvice advice, QMember member, String frequency) {
-        if (!StringUtils.hasText(frequency)) {
-            return null;
+    // 상담 빈도 다중 OR 조건
+    private BooleanExpression frequencyIn(QAdvice advice, QMember member, List<String> frequencies) {
+        if (CollectionUtils.isEmpty(frequencies)) return null;
+
+        var countQuery = JPAExpressions.select(advice.id.count())
+                .from(advice)
+                .where(advice.member.eq(member));
+
+        List<BooleanExpression> conditions = new ArrayList<>();
+        for (String frequency : frequencies) {
+            switch (frequency.toUpperCase()) {
+                case "LOW"    -> conditions.add(Expressions.asNumber(countQuery).loe(2L));
+                case "MEDIUM" -> conditions.add(Expressions.asNumber(countQuery).between(3L, 5L));
+                case "HIGH"   -> conditions.add(Expressions.asNumber(countQuery).goe(6L));
+            }
         }
-        
-        var countQuery = JPAExpressions.select(advice.id.count()).from(advice).where(advice.member.eq(member));
-        
-        return switch (frequency.toUpperCase()) {
-            case "LOW" -> Expressions.asNumber(countQuery).loe(2L);
-            case "MEDIUM" -> Expressions.asNumber(countQuery).between(3L, 5L);
-            case "HIGH" -> Expressions.asNumber(countQuery).goe(6L);
-            default -> null;
-        };
+
+        if (conditions.isEmpty()) return null;
+
+        // 여러 빈도 조건을 OR로 연결
+        return conditions.stream()
+                .reduce(BooleanExpression::or)
+                .orElse(null);
     }
 
-    private BooleanExpression categoryEq(QAdvice advice, QMember member, Long categoryId) {
-        if (categoryId == null) {
-            return null;
-        }
-        
-        org.backend.domain.advice.entity.QCategories category = org.backend.domain.advice.entity.QCategories.categories;
+    // 카테고리 다중 IN 조건
+//    private BooleanExpression categoryIn(QAdvice advice, QMember member, List<Long> categoryIds) {
+//        if (CollectionUtils.isEmpty(categoryIds)) return null;
+//
+//        QCategories category = QCategories.categories;
+//        return member.id.in(
+//                JPAExpressions
+//                        .select(advice.member.id)
+//                        .from(advice)
+//                        .join(advice.category, category)
+//                        .where(category.id.in(categoryIds)
+//                                .or(category.parentId.in(categoryIds)))
+//        );
+//    }
+    private BooleanExpression categoryIn(QAdvice advice, QMember member, List<Long> categoryIds) {
+        if (CollectionUtils.isEmpty(categoryIds)) return null;
+
+        QCategories category = QCategories.categories;
+
+        // 하위 카테고리 id 먼저 서브쿼리로 조회
         return member.id.in(
                 JPAExpressions
                         .select(advice.member.id)
                         .from(advice)
                         .join(advice.category, category)
-                        .where(category.id.eq(categoryId).or(category.parentId.eq(categoryId)))
+                        .where(
+                                category.id.in(categoryIds)  // 직접 해당 카테고리
+                                        .or(
+                                                category.id.in(  // 상위 카테고리의 하위 카테고리
+                                                        JPAExpressions
+                                                                .select(category.id)
+                                                                .from(category)
+                                                                .where(category.parentId.in(categoryIds))
+                                                )
+                                        )
+                        )
         );
     }
 }
