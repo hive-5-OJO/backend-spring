@@ -52,13 +52,13 @@ public class KpiService {
                         return "UNKNOWN";
 
                 return switch (kpi) {
-                        case "CRR" -> value.compareTo(new BigDecimal("0.8")) >= 0 ? "EXCELLENT"
-                                        : (value.compareTo(new BigDecimal("0.6")) >= 0 ? "STABLE" : "WARNING");
-                        case "CHURN" -> value.compareTo(new BigDecimal("0.1")) <= 0 ? "SAFE"
-                                        : (value.compareTo(new BigDecimal("0.2")) <= 0 ? "CAUTION" : "DANGER");
-                        case "NRR" -> value.compareTo(new BigDecimal("1.1")) >= 0 ? "GROWING"
-                                        : (value.compareTo(new BigDecimal("1.0")) >= 0 ? "STAGNANT" : "DECLINING");
-                        default -> "NORMAL";
+                        case "CRR" -> value.compareTo(new BigDecimal("0.8")) >= 0 ? "HEALTHY"
+                                        : (value.compareTo(new BigDecimal("0.6")) >= 0 ? "WARNING" : "DANGER");
+                        case "CHURN" -> value.compareTo(new BigDecimal("0.1")) <= 0 ? "HEALTHY"
+                                        : (value.compareTo(new BigDecimal("0.2")) <= 0 ? "WARNING" : "DANGER");
+                        case "NRR" -> value.compareTo(new BigDecimal("1.1")) >= 0 ? "HEALTHY"
+                                        : (value.compareTo(new BigDecimal("1.0")) >= 0 ? "WARNING" : "DANGER");
+                        default -> "HEALTHY";
                 };
         }
 }
