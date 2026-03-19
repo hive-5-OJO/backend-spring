@@ -69,8 +69,11 @@ public interface CustomerSummaryRepository extends JpaRepository<Member, Long> {
         FROM member m
         LEFT JOIN feature_consultation fc ON fc.member_id = m.member_id
         LEFT JOIN analysis a ON a.member_id = m.member_id
+        WHERE m.status != 'TERMINATED'
+          AND m.created_at IS NOT NULL
+          AND m.created_at <= NOW()
         """,
-            countQuery = "SELECT COUNT(*) FROM member WHERE status != 'TERMINATED' AND created_at <= :endDate",
+            countQuery = "SELECT COUNT(*) FROM member WHERE status != 'TERMINATED' AND created_at IS NOT NULL AND created_at <= NOW()",
             nativeQuery = true)
     Page<CustomerSummaryProjection> findCustomerSummary(Pageable pageable);
 
@@ -98,6 +101,8 @@ public interface CustomerSummaryRepository extends JpaRepository<Member, Long> {
     LEFT JOIN feature_consultation fc ON fc.member_id = m.member_id
     LEFT JOIN analysis a ON a.member_id = m.member_id
     WHERE m.member_id IN (:memberIds)
+      AND m.created_at IS NOT NULL
+      AND m.created_at <= NOW()
     """,
             nativeQuery = true)
     List<CustomerSummaryProjection> findCustomerSummaryByMemberIds(
