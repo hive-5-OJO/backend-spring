@@ -67,8 +67,24 @@ public interface CustomerSummaryRepository extends JpaRepository<Member, Long> {
                 LIMIT 1
             ) AS productName
         FROM member m
-        LEFT JOIN feature_consultation fc ON fc.member_id = m.member_id
-        LEFT JOIN analysis a ON a.member_id = m.member_id
+        LEFT JOIN (
+            SELECT fc1.member_id, fc1.top_consult_category, fc1.last_30d_consult_count
+            FROM feature_consultation fc1
+            INNER JOIN (
+                SELECT member_id, MAX(feature_base_date) as max_date
+                FROM feature_consultation
+                GROUP BY member_id
+            ) fc2 ON fc1.member_id = fc2.member_id AND fc1.feature_base_date = fc2.max_date
+        ) fc ON m.member_id = fc.member_id
+        LEFT JOIN (
+            SELECT a1.member_id, a1.type
+            FROM analysis a1
+            INNER JOIN (
+                SELECT member_id, MAX(created_at) as max_date
+                FROM analysis
+                GROUP BY member_id
+            ) a2 ON a1.member_id = a2.member_id AND a1.created_at = a2.max_date
+        ) a ON m.member_id = a.member_id
         WHERE m.status != 'TERMINATED'
           AND m.created_at IS NOT NULL
           AND m.created_at <= NOW()
@@ -98,8 +114,26 @@ public interface CustomerSummaryRepository extends JpaRepository<Member, Long> {
             LIMIT 1
         ) AS productName
     FROM member m
-    LEFT JOIN feature_consultation fc ON fc.member_id = m.member_id
-    LEFT JOIN analysis a ON a.member_id = m.member_id
+    LEFT JOIN (
+        SELECT fc1.member_id, fc1.top_consult_category, fc1.last_30d_consult_count
+        FROM feature_consultation fc1
+        INNER JOIN (
+            SELECT member_id, MAX(feature_base_date) as max_date
+            FROM feature_consultation
+            WHERE member_id IN (:memberIds)
+            GROUP BY member_id
+        ) fc2 ON fc1.member_id = fc2.member_id AND fc1.feature_base_date = fc2.max_date
+    ) fc ON m.member_id = fc.member_id
+    LEFT JOIN (
+        SELECT a1.member_id, a1.type
+        FROM analysis a1
+        INNER JOIN (
+            SELECT member_id, MAX(created_at) as max_date
+            FROM analysis
+            WHERE member_id IN (:memberIds)
+            GROUP BY member_id
+        ) a2 ON a1.member_id = a2.member_id AND a1.created_at = a2.max_date
+    ) a ON m.member_id = a.member_id
     WHERE m.member_id IN (:memberIds)
       AND m.created_at IS NOT NULL
       AND m.created_at <= NOW()
