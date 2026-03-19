@@ -93,16 +93,19 @@ public class ChannelService {
                         .build())
                 .toList();
 
-        channelMemberRepository.saveAll(newMembers);
-
-        return channelMemberRepository.findMemberDetailsByChannelId(channelId);
+        return channelMemberRepository.saveAll(newMembers).stream()
+                .map(ChannelMemberResponse::from)
+                .toList();
     }
 
     public List<ChannelMemberResponse> getMembers(Long adminId, Long channelId) {
         checkChannelExistsAndOwned(channelId, adminId);
-        return channelMemberRepository.findMemberDetailsByChannelId(channelId);
+        return channelMemberRepository.findByChannelId(channelId).stream()
+                .map(ChannelMemberResponse::from)
+                .toList();
     }
 
+    // 단일 고객 제거
     @Transactional
     public void removeMember(Long adminId, Long channelId, Long memberId) {
         checkChannelExistsAndOwned(channelId, adminId);
@@ -112,6 +115,7 @@ public class ChannelService {
         channelMemberRepository.delete(channelMember);
     }
 
+    // 여러 고객 한번에 제거
     @Transactional
     public void removeMembers(Long adminId, Long channelId, ChannelMemberRequest request) {
         checkChannelExistsAndOwned(channelId, adminId);
@@ -128,6 +132,7 @@ public class ChannelService {
         channelMemberRepository.deleteByChannelIdAndMemberIdIn(channelId, memberIds);
     }
 
+    // 채널 전체 비우기 (채널은 유지, 고객 목록만 초기화)
     @Transactional
     public void clearMembers(Long adminId, Long channelId) {
         checkChannelExistsAndOwned(channelId, adminId);
