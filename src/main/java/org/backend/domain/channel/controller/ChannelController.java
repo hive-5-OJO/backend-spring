@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.backend.common.CommonResponse;
 import org.backend.common.exception.CustomException;
 import org.backend.common.exception.ErrorCode;
+import org.backend.domain.auth.security.AdminPrincipal;
 import org.backend.domain.channel.dto.*;
 import org.backend.domain.channel.service.ChannelService;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +23,34 @@ public class ChannelController {
 
     private Long getCurrentAdminId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
-        return Long.parseLong((String) authentication.getPrincipal());
-    }
 
-    // ── 채널 CRUD ──────────────────────────────────────────────
+        Object principal = authentication.getPrincipal();
+
+        // 1) 현재 JWT 필터 구조: principal = adminId(String)
+        if (principal instanceof String principalStr) {
+            if ("anonymousUser".equals(principalStr)) {
+                throw new CustomException(ErrorCode.UNAUTHORIZED);
+            }
+
+            try {
+                return Long.parseLong(principalStr);
+            } catch (NumberFormatException e) {
+                throw new CustomException(ErrorCode.UNAUTHORIZED);
+            }
+        }
+        // 2) 혹시 이후 AdminPrincipal 구조로 바뀌어도 대응 가능
+        if (principal instanceof AdminPrincipal adminPrincipal) {
+            return adminPrincipal.getAdminId();
+        }
+
+        throw new CustomException(ErrorCode.UNAUTHORIZED);
+    }
 
     @PostMapping
     public CommonResponse<ChannelResponse> createChannel(@RequestBody ChannelRequest request) {
@@ -62,8 +85,6 @@ public class ChannelController {
         return CommonResponse.success(null, "채널이 삭제되었습니다.");
     }
 
-    // ── 채널 멤버 관리 ──────────────────────────────────────────
-
     @PostMapping("/{channelId}/members")
     public CommonResponse<List<ChannelMemberResponse>> addMembers(
             @PathVariable Long channelId,
@@ -78,7 +99,6 @@ public class ChannelController {
         return CommonResponse.success(channelService.getMembers(adminId, channelId), "채널 고객 목록 조회 성공");
     }
 
-    // 단일 고객 제거
     @DeleteMapping("/{channelId}/members/{memberId}")
     public CommonResponse<Void> removeMember(
             @PathVariable Long channelId,
@@ -88,7 +108,6 @@ public class ChannelController {
         return CommonResponse.success(null, "채널에서 고객이 제거되었습니다.");
     }
 
-    // 여러 고객 한번에 제거
     @DeleteMapping("/{channelId}/members")
     public CommonResponse<Void> removeMembers(
             @PathVariable Long channelId,
@@ -98,7 +117,6 @@ public class ChannelController {
         return CommonResponse.success(null, "채널에서 고객들이 제거되었습니다.");
     }
 
-    // 채널 전체 비우기 (채널 유지, 고객 목록만 초기화)
     @DeleteMapping("/{channelId}/members/all")
     public CommonResponse<Void> clearMembers(@PathVariable Long channelId) {
         Long adminId = getCurrentAdminId();

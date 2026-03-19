@@ -83,6 +83,7 @@ public interface AdviceStatisticsRepository extends JpaRepository<Advice, Long> 
                 SELECT satisfaction_score, COUNT(*)
                 FROM advice
                 WHERE created_at BETWEEN :start AND :end
+                    AND satisfaction_score IS NOT NULL
                 GROUP BY satisfaction_score
                 ORDER BY satisfaction_score
             """, nativeQuery = true)
@@ -91,8 +92,8 @@ public interface AdviceStatisticsRepository extends JpaRepository<Advice, Long> 
 
     // 2. 전체 요약
     @Query(value = """
-                SELECT COUNT(*) as totalCount,
-                       COALESCE(AVG(satisfaction_score), 0.0) as averageScore
+                SELECT COUNT(satisfaction_score) as totalCount,
+                       COALESCE(ROUND(AVG(satisfaction_score), 2), 0.0) as averageScore
                 FROM advice
                 WHERE created_at BETWEEN :start AND :end
             """, nativeQuery = true)
@@ -139,7 +140,7 @@ public interface AdviceStatisticsRepository extends JpaRepository<Advice, Long> 
                        COALESCE(s.avg_dur, 0.0) as avgDurationSeconds,
                        COALESCE(s.in_cnt, 0) as inboundCount,
                        COALESCE(s.out_cnt, 0) as outboundCount,
-                       mc.root_name as mainCategory,
+                       COALESCE(mc.root_name, '상담 없음') as mainCategory,
                        COALESCE(mc.category_cnt, 0) as mainCategoryCount
                 FROM admin ad
                     LEFT JOIN Stats s ON ad.admin_id = s.admin_id

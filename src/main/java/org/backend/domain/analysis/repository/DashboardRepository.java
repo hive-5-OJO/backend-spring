@@ -22,7 +22,16 @@ public interface DashboardRepository extends JpaRepository<Member, Long> {
 
     // 3. New Active Customers 
     // New customers this month who have usage > 0 or whatever. Assuming new + active status.
-    @Query(value = "SELECT COUNT(*) FROM member WHERE created_at >= :startDate AND created_at <= :endDate AND status = 'ACTIVE'", nativeQuery = true)
+    @Query(value = """
+        SELECT COUNT(DISTINCT fl.member_id)
+        FROM feature_lifecycle fl
+        JOIN feature_lifecycle prev_fl 
+          ON fl.member_id = prev_fl.member_id 
+          AND prev_fl.feature_base_date = DATE_SUB(fl.feature_base_date, INTERVAL 1 DAY)
+        WHERE fl.feature_base_date >= :startDate AND fl.feature_base_date <= :endDate
+          AND prev_fl.is_dormant_flag = 'Y'
+          AND fl.is_dormant_flag = 'N'
+        """, nativeQuery = true)
     long countNewActiveCustomers(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
     // 4. At Risk Customers (from analysis table)

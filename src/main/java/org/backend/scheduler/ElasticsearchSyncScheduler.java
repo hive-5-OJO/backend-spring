@@ -12,6 +12,7 @@ import org.backend.domain.member.repository.MemberRepository;
 import org.backend.domain.member.repository.MemberSearchRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,6 +61,7 @@ public class ElasticsearchSyncScheduler {
         log.info("Successfully synced {} members.", memberDocuments.size());
     }
 
+    @Transactional(readOnly = true)
     private void syncAdvices() {
         log.info("Syncing Advices...");
         List<Advice> advices = adviceRepository.findAll();

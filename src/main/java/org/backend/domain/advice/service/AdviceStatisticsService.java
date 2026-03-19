@@ -9,6 +9,7 @@ import org.backend.domain.advice.dto.AdviceOutboundSummaryRow;
 import org.backend.domain.advice.dto.AdvicePromotionStatItem;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -87,23 +88,33 @@ public class AdviceStatisticsService {
         LocalDateTime start = from != null ? from.atStartOfDay() : LocalDateTime.now().minusMonths(1);
         LocalDateTime end = to != null ? to.atTime(23, 59, 59) : LocalDateTime.now();
 
-        Map<String, Object> summary = repo.findSatisfaction(start, end);
-        Double score = ((Number) summary.get("averageScore")).doubleValue();
-        Long cnt = ((Number) summary.get("totalCount")).longValue();
-
         List<Object[]> rawDistribution = repo.findScoreDistribution(start, end);
 
-        Map<Long, Long> scoreMap = rawDistribution.stream().collect(
+        Map<Long, Long> scoreMap = rawDistribution.stream()
+                .filter(row -> row[0] != null).collect(
                 Collectors.toMap(
                         row -> ((Number) row[0]).longValue(),
                         row -> ((Number) row[1]).longValue()));
 
-        // 없는 거는 0으로 처리
-        List<AdviceSatisfactionResponse.SatisfactionScoreCount> dis = LongStream.rangeClosed(1, 10)
-                .mapToObj(s -> new AdviceSatisfactionResponse.SatisfactionScoreCount(
-                        s,
-                        scoreMap.getOrDefault(s, 0L)))
-                .toList();
+        List<AdviceSatisfactionResponse.SatisfactionScoreCount> dis = new ArrayList<>();
+
+        long cnt = 0;
+        double weightedSum = 0;
+
+        for (long s = 1; s <= 5; s++) {
+            long score1 = s * 2 - 1; // 홀수 (1, 3, 5, 7, 9)
+            long score2 = s * 2;     // 짝수 (2, 4, 6, 8, 10)
+
+            long combinedCount = scoreMap.getOrDefault(score1, 0L) + scoreMap.getOrDefault(score2, 0L);
+
+            dis.add(new AdviceSatisfactionResponse.SatisfactionScoreCount(s, combinedCount));
+
+            cnt += combinedCount;
+            weightedSum += (s * combinedCount);
+        }
+
+        Double rawAvg  = cnt > 0 ? weightedSum / cnt : 0.0;
+        Double score = Math.round(rawAvg  * 100) / 100.0;
 
         return new AdviceSatisfactionResponse(score, cnt, dis);
     }
