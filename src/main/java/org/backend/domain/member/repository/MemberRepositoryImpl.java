@@ -113,23 +113,14 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         if (CollectionUtils.isEmpty(categoryIds)) return null;
 
         QCategories category = QCategories.categories;
-
-        // 하위 카테고리 id 먼저 서브쿼리로 조회
         return member.id.in(
                 JPAExpressions
                         .select(advice.member.id)
                         .from(advice)
                         .join(advice.category, category)
                         .where(
-                                category.id.in(categoryIds)  // 직접 해당 카테고리
-                                        .or(
-                                                category.id.in(  // 상위 카테고리의 하위 카테고리
-                                                        JPAExpressions
-                                                                .select(category.id)
-                                                                .from(category)
-                                                                .where(category.parentId.in(categoryIds))
-                                                )
-                                        )
+                                category.id.in(categoryIds)
+                                        .or(category.parentId.in(categoryIds))
                         )
         );
     }
