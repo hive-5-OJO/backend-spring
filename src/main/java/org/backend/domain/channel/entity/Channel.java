@@ -32,7 +32,7 @@ public class Channel {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Enumerated(EnumType.STRING)
+
     @Column(nullable = false, length = 20)
     private ChannelStatus status;
 
@@ -56,6 +56,7 @@ public class Channel {
     }
 
     public void update(String name, String description, ChannelStatus status) {
+        // null로 들어오면 기존 값 유지
         if (name != null) this.name = name;
         if (description != null) this.description = description;
         if (status != null) this.status = status;
