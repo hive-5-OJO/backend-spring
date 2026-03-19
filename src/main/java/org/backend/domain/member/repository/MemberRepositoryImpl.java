@@ -125,3 +125,4 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         );
     }
 }
+
