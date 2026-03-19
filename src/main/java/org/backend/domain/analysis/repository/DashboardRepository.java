@@ -57,12 +57,12 @@ public interface DashboardRepository extends JpaRepository<Member, Long> {
         """, nativeQuery = true)
     List<Map<String, Object>> getDailyChurnedCustomers(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
-    // Active customers by date - Since we don't have daily snapshots in member table, let's use a dummy approximation based on created_at for simplicity, or feature_usage if available.
+    // Active customers by date - Count of members who are not dormant on that date.
     @Query(value = """
         SELECT DATE(feature_base_date) as statDate, 
                COUNT(DISTINCT member_id) as activeCount
-        FROM feature_usage 
-        WHERE feature_base_date >= :startDate AND feature_base_date <= :endDate AND total_usage_amount > 0
+        FROM feature_lifecycle 
+        WHERE feature_base_date >= :startDate AND feature_base_date <= :endDate AND is_dormant_flag = 'N'
         GROUP BY DATE(feature_base_date)
         """, nativeQuery = true)
     List<Map<String, Object>> getDailyActiveCustomers(@Param("startDate") String startDate, @Param("endDate") String endDate);
