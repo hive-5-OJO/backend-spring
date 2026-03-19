@@ -22,7 +22,7 @@ public interface ChannelMemberRepository extends JpaRepository<ChannelMember, Lo
             m.phone,
             m.email,
             null,
-            CONCAT(FUNCTION('DATE_FORMAT', m.createdAt, '%Y-%m-%d'), ' ~ 현재'),
+            null,
             null,
             null,
             null,
